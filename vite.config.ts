@@ -1,22 +1,24 @@
+/// <reference types="vitest" />
+/// <reference types="node" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
+import * as path from 'path'
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
-      '@components': resolve(__dirname, './src/components'),
-      '@hooks': resolve(__dirname, './src/hooks'),
-      '@services': resolve(__dirname, './src/services'),
-      '@types': resolve(__dirname, './src/types'),
-      '@utils': resolve(__dirname, './src/utils'),
-      '@assets': resolve(__dirname, './src/assets')
+      '@': path.resolve(new URL('.', import.meta.url).pathname, './src'),
+      '@components': path.resolve(new URL('.', import.meta.url).pathname, './src/components'),
+      '@hooks': path.resolve(new URL('.', import.meta.url).pathname, './src/hooks'),
+      '@services': path.resolve(new URL('.', import.meta.url).pathname, './src/services'),
+      '@types': path.resolve(new URL('.', import.meta.url).pathname, './src/types'),
+      '@utils': path.resolve(new URL('.', import.meta.url).pathname, './src/utils'),
+      '@assets': path.resolve(new URL('.', import.meta.url).pathname, './src/assets')
     }
   },
   server: {
-    port: 3000,
+    port: 5173,
     open: true,
     proxy: {
       '/api': {
@@ -27,11 +29,17 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.ts'
+    sourcemap: true,
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['framer-motion', 'react-chartjs-2', 'react-leaflet'],
+          utils: ['axios', 'date-fns'],
+          icons: ['lucide-react']
+        }
+      }
+    }
   }
 })

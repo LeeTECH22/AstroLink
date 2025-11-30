@@ -8,8 +8,32 @@
 /* Global styles */
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
+  background: linear-gradient(135deg, #04070d 0%, #0a1326 50%, #02040a 100%);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 50px 50px;
   min-height: 100vh;
+  color: #e5e7eb;
+  color-scheme: dark;
+}
+
+/* Subtle twinkle star overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.15), rgba(255,255,255,0) 60%),
+    radial-gradient(1.5px 1.5px at 70% 10%, rgba(255,255,255,0.12), rgba(255,255,255,0) 60%),
+    radial-gradient(1.5px 1.5px at 40% 80%, rgba(255,255,255,0.1), rgba(255,255,255,0) 60%),
+    radial-gradient(2px 2px at 85% 60%, rgba(255,255,255,0.14), rgba(255,255,255,0) 60%);
+  animation: twinkle 8s ease-in-out infinite;
+  opacity: 0.65;
+}
+
+@keyframes twinkle {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.15); }
 }
 
 /* Custom scrollbar */
@@ -108,12 +132,23 @@ body {
 
 /* Modern card styles */
 .card {
-  @apply bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300;
+  @apply bg-gray-900/70 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-white;
 }
 
 .card-hover {
-  @apply hover:bg-white hover:scale-[1.02] transition-all duration-300 cursor-pointer;
+  @apply hover:bg-gray-800 hover:scale-[1.02] transition-all duration-300 cursor-pointer;
 }
+
+/* High-contrast text overrides for better accessibility */
+.text-gray-300 { color: #e5e7eb !important; }
+.text-gray-400 { color: #d1d5db !important; }
+.text-gray-500 { color: #cbd5e1 !important; }
+.text-gray-600 { color: #94a3b8 !important; }
+.text-gray-700 { color: #e5e7eb !important; }
+
+/* Form label and helper text defaults */
+label, .form-label { color: #e5e7eb; }
+.helper-text, .text-muted { color: #d1d5db; }
 
 /* Professional gradient backgrounds */
 .gradient-primary {

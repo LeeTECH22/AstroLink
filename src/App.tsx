@@ -17,16 +17,18 @@ import SmallBodies from './pages/SmallBodies'
 import EarthdataSearch from './pages/EarthdataSearch'
 import AstrophysicsData from './pages/AstrophysicsData'
 import About from './pages/About'
+import ErrorBanner from './components/ErrorBanner'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen space-bg">
       <Navbar />
+      <ErrorBanner />
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="container mx-auto px-4 py-8"
+        className="container mx-auto px-4 py-8 text-slate-100"
       >
         <Routes>
           <Route path="/" element={<Dashboard />} />

@@ -164,7 +164,7 @@ const PowerData = () => {
           <Sun className="h-8 w-8 text-yellow-400" />
           <h1 className="text-4xl font-bold text-white">POWER Climate Data</h1>
         </div>
-        <p className="text-gray-300 max-w-2xl mx-auto">
+        <p className="text-gray-200 max-w-2xl mx-auto">
           Access NASA's Prediction Of Worldwide Energy Resources (POWER) data for 
           climate and solar energy analysis at any location worldwide.
         </p>
@@ -184,7 +184,7 @@ const PowerData = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-200 mb-2">
               Latitude
             </label>
             <input
@@ -200,7 +200,7 @@ const PowerData = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-200 mb-2">
               Longitude
             </label>
             <input
@@ -216,7 +216,7 @@ const PowerData = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-200 mb-2">
               Start Date
             </label>
             <input
@@ -228,7 +228,7 @@ const PowerData = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-200 mb-2">
               End Date
             </label>
             <input
@@ -240,7 +240,7 @@ const PowerData = () => {
           </div>
         </div>
 
-        <div className="mt-4 text-sm text-gray-400">
+        <div className="mt-4 text-sm text-gray-300">
           <p><strong>Example locations:</strong> New York (40.7, -74.0), London (51.5, -0.1), Tokyo (35.7, 139.7)</p>
         </div>
       </motion.div>
@@ -262,7 +262,7 @@ const PowerData = () => {
                   Math.round((Object.values(data.properties.parameter.T2M) as number[]).reduce((a, b) => a + b, 0) / Object.values(data.properties.parameter.T2M).length * 10) / 10 
                   : 'N/A'}°C
               </div>
-              <div className="text-gray-300">Avg Temperature</div>
+              <div className="text-gray-200">Avg Temperature</div>
             </div>
 
             <div className="card text-center">
@@ -272,7 +272,7 @@ const PowerData = () => {
                   Math.round((Object.values(data.properties.parameter.ALLSKY_SFC_SW_DWN) as number[]).reduce((a, b) => a + b, 0) / Object.values(data.properties.parameter.ALLSKY_SFC_SW_DWN).length * 100) / 100
                   : 'N/A'}
               </div>
-              <div className="text-gray-300">Avg Solar (kWh/m²/day)</div>
+              <div className="text-gray-200">Avg Solar (kWh/m²/day)</div>
             </div>
 
             <div className="card text-center">
@@ -280,7 +280,7 @@ const PowerData = () => {
               <div className="text-2xl font-bold text-white mb-1">
                 {latitude}, {longitude}
               </div>
-              <div className="text-gray-300">Coordinates</div>
+              <div className="text-gray-200">Coordinates</div>
             </div>
 
             <div className="card text-center">
@@ -288,7 +288,7 @@ const PowerData = () => {
               <div className="text-2xl font-bold text-white mb-1">
                 {data.properties?.parameter?.T2M ? Object.keys(data.properties.parameter.T2M).length : 0}
               </div>
-              <div className="text-gray-300">Data Points</div>
+              <div className="text-gray-200">Data Points</div>
             </div>
           </div>
 
@@ -310,15 +310,15 @@ const PowerData = () => {
                 <h4 className="text-lg font-medium text-white mb-3">Coordinates</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Latitude:</span>
+                    <span className="text-gray-300">Latitude:</span>
                     <span className="text-white">{data.geometry?.coordinates?.[1] || latitude}°</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Longitude:</span>
+                    <span className="text-gray-300">Longitude:</span>
                     <span className="text-white">{data.geometry?.coordinates?.[0] || longitude}°</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Elevation:</span>
+                    <span className="text-gray-300">Elevation:</span>
                     <span className="text-white">
                       {typeof data.properties?.parameter?.elevation === 'number' 
                         ? `${data.properties.parameter.elevation} m` 
@@ -332,15 +332,15 @@ const PowerData = () => {
                 <h4 className="text-lg font-medium text-white mb-3">Data Parameters</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">T2M:</span>
+                    <span className="text-gray-300">T2M:</span>
                     <span className="text-white">Temperature at 2 Meters</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">ALLSKY_SFC_SW_DWN:</span>
+                    <span className="text-gray-300">ALLSKY_SFC_SW_DWN:</span>
                     <span className="text-white">Solar Irradiance</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Community:</span>
+                    <span className="text-gray-300">Community:</span>
                     <span className="text-white">Renewable Energy</span>
                   </div>
                 </div>
