@@ -1,7 +1,11 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from 'react-query'
 import { motion } from 'framer-motion'
-import { Zap, Calendar, AlertTriangle, BarChart3, Table } from 'lucide-react'
+import Zap from 'lucide-react/dist/esm/icons/zap'
+import Calendar from 'lucide-react/dist/esm/icons/calendar'
+import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle'
+import BarChart3 from 'lucide-react/dist/esm/icons/bar-chart-3'
+import Table from 'lucide-react/dist/esm/icons/table'
 import { format, addDays } from 'date-fns'
 import {
   Chart as ChartJS,

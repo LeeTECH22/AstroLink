@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from 'react-query'
 import { motion } from 'framer-motion'
-import { Sun, MapPin, Calendar, TrendingUp } from 'lucide-react'
+import Sun from 'lucide-react/dist/esm/icons/sun'
+import MapPin from 'lucide-react/dist/esm/icons/map-pin'
+import Calendar from 'lucide-react/dist/esm/icons/calendar'
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up'
 import { format, subDays } from 'date-fns'
 import { Line } from 'react-chartjs-2'
 import {

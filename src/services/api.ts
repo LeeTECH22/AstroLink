@@ -65,7 +65,7 @@ export const nasaApi = {
   // 1. APOD - Astronomy Picture of the Day
   getAPOD: async (date?: string): Promise<AxiosResponse<APODData>> => {
     try {
-      return await api.get('/apod', { params: { date } })
+      return await api.get('/apod', { params: { date }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       if (NASA_API_KEY) {
         return await axios.get(`${NASA_BASE_URL}/planetary/apod`, {
@@ -84,7 +84,7 @@ export const nasaApi = {
     camera?: string
   ): Promise<AxiosResponse<MarsRoverResponse>> => {
     try {
-      return await api.get('/mars-photos', { params: { rover, sol, camera } })
+      return await api.get('/mars-photos', { params: { rover, sol, camera }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       if (NASA_API_KEY) {
         const params: Record<string, string> = { api_key: NASA_API_KEY, sol }
@@ -104,7 +104,7 @@ export const nasaApi = {
     endDate?: string
   ): Promise<AxiosResponse<NEOResponse>> => {
     try {
-      return await api.get('/neo', { params: { start_date: startDate, end_date: endDate } })
+      return await api.get('/neo', { params: { start_date: startDate, end_date: endDate }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       if (NASA_API_KEY) {
         return await axios.get(`${NASA_BASE_URL}/neo/rest/v1/feed`, {
@@ -119,14 +119,14 @@ export const nasaApi = {
   // 4. DONKI - Space Weather
   getSpaceWeather: async (type?: 'flr' | 'cme' | 'all'): Promise<AxiosResponse<SpaceWeatherResponse>> => {
     try {
-      return await api.get('/donki', { params: { type } })
+      return await api.get('/donki', { params: { type }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       const base = `${NASA_BASE_URL}/DONKI`
       if (type === 'all' || !type) {
         const [flr, cme] = await Promise.all([
           axios.get(`${base}/FLR`, { params: { api_key: NASA_API_KEY }, timeout: 30000 }),
           axios.get(`${base}/CME`, { params: { api_key: NASA_API_KEY }, timeout: 30000 }),
-        ])
+         ])
         const data: SpaceWeatherResponse = {
           solarFlares: (flr.data || []),
           cmes: (cme.data || []),
@@ -144,12 +144,12 @@ export const nasaApi = {
 
   // DONKI Notifications
   getDONKINotifications: (): Promise<AxiosResponse<any[]>> =>
-    api.get('/donki/notifications'),
+    api.get('/donki/notifications', { headers: { 'x-suppress-error': 'true' } }),
 
   // 5. EPIC - Earth Images
   getEarthImages: async (date?: string): Promise<AxiosResponse<EPICImage[]>> => {
     try {
-      return await api.get('/epic', { params: { date } })
+      return await api.get('/epic', { params: { date }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       // Fallback directly to NASA EPIC API when proxy/backend is unavailable
       const url = date
@@ -165,7 +165,7 @@ export const nasaApi = {
   // 6. EONET - Natural Events
   getNaturalEvents: async (category?: string, status: string = 'open', limit: number = 20): Promise<AxiosResponse<EONETResponse>> => {
     try {
-      return await api.get('/eonet', { params: { category, status, limit } })
+      return await api.get('/eonet', { params: { category, status, limit }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       const params: Record<string, string | number> = { status, limit }
       if (category) params.category = category
@@ -179,7 +179,7 @@ export const nasaApi = {
   // 7. NASA Image Library
   searchImages: async (query: string = 'earth', mediaType: string = 'image'): Promise<AxiosResponse<NASAImageResponse>> => {
     try {
-      return await api.get('/images', { params: { q: query, media_type: mediaType } })
+      return await api.get('/images', { params: { q: query, media_type: mediaType }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       return await axios.get('https://images-api.nasa.gov/search', {
         params: { q: query, media_type: mediaType },
@@ -218,7 +218,7 @@ export const nasaApi = {
   // 9. TechPort - NASA Technology Projects
   getTechPortProjects: async (projectId?: string): Promise<AxiosResponse<TechPortResponse>> => {
     try {
-      return await api.get('/techport', { params: { projectId } })
+      return await api.get('/techport', { params: { projectId }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       if (projectId) {
         return await axios.get(`${NASA_BASE_URL}/techport/api/projects/${projectId}`, {
@@ -233,7 +233,7 @@ export const nasaApi = {
   // 10. GIBS - Global Imagery Browse Services
   getGIBSCapabilities: async (): Promise<AxiosResponse<string>> => {
     try {
-      return await api.get('/gibs')
+      return await api.get('/gibs', { headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       const res = await axios.get(
         'https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/wmts.cgi',
@@ -246,7 +246,7 @@ export const nasaApi = {
   // 11. JPL Small-Body Database
   getSmallBodyData: async (sstr: string = '433'): Promise<AxiosResponse<SmallBodyData>> => {
     try {
-      return await api.get('/sbdb', { params: { sstr } })
+      return await api.get('/sbdb', { params: { sstr }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       return await axios.get('https://ssd-api.jpl.nasa.gov/sbdb.api', { params: { sstr }, timeout: 30000 })
     }
@@ -254,12 +254,12 @@ export const nasaApi = {
 
   // 12. OSDR - Open Science Data Repository
   getOSDRData: (studyId: string = 'OSD-379', page: number = 1, size: number = 10): Promise<AxiosResponse<any>> =>
-    api.get('/osdr', { params: { studyId, page, size } }),
+    api.get('/osdr', { params: { studyId, page, size }, headers: { 'x-suppress-error': 'true' } }),
 
   // 13. Earthdata Search
   getEarthdataCollections: async (keyword: string = 'MODIS', pageSize: number = 10): Promise<AxiosResponse<EarthdataResponse>> => {
     try {
-      return await api.get('/earthdata', { params: { keyword, page_size: pageSize } })
+      return await api.get('/earthdata', { params: { keyword, page_size: pageSize }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       return await axios.get('https://cmr.earthdata.nasa.gov/search/collections.json', {
         params: { keyword, page_size: pageSize },
@@ -270,12 +270,12 @@ export const nasaApi = {
 
   // 14. ADS - Astrophysics Data System
   getADSData: (query: string = 'black hole', rows: number = 10): Promise<AxiosResponse<any>> =>
-    api.get('/ads', { params: { q: query, rows } }),
+    api.get('/ads', { params: { q: query, rows }, headers: { 'x-suppress-error': 'true' } }),
 
   // 15. Exoplanet Archive
   getExoplanets: async (limit: number = 100): Promise<AxiosResponse<ExoplanetData[]>> => {
     try {
-      return await api.get('/exoplanets', { params: { limit } })
+      return await api.get('/exoplanets', { params: { limit }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
       const query = encodeURIComponent(`select pl_name,disc_year from ps`)
       const url = `https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=${query}&format=json&limit=${limit}`

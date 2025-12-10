@@ -1,21 +1,19 @@
 
 import { motion } from 'framer-motion'
-import { 
-  Info, 
-  Rocket, 
-  Globe, 
-  Satellite, 
-  Camera, 
-  Zap, 
-  ExternalLink,
-  Github,
-  Star,
-  Sun,
-  MapPin,
-  Image,
-  Database,
-  Microscope
-} from 'lucide-react'
+import Info from 'lucide-react/dist/esm/icons/info'
+import Rocket from 'lucide-react/dist/esm/icons/rocket'
+import Globe from 'lucide-react/dist/esm/icons/globe'
+import Satellite from 'lucide-react/dist/esm/icons/satellite'
+import Camera from 'lucide-react/dist/esm/icons/camera'
+import Zap from 'lucide-react/dist/esm/icons/zap'
+import ExternalLink from 'lucide-react/dist/esm/icons/external-link'
+import Github from 'lucide-react/dist/esm/icons/github'
+import Star from 'lucide-react/dist/esm/icons/star'
+import Sun from 'lucide-react/dist/esm/icons/sun'
+import MapPin from 'lucide-react/dist/esm/icons/map-pin'
+import Image from 'lucide-react/dist/esm/icons/image'
+import Database from 'lucide-react/dist/esm/icons/database'
+import Microscope from 'lucide-react/dist/esm/icons/microscope'
 
 const About = () => {
   const apis = [

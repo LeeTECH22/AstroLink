@@ -17,6 +17,9 @@ export default defineConfig({
       '@assets': path.resolve(new URL('.', import.meta.url).pathname, './src/assets')
     }
   },
+  optimizeDeps: {
+    exclude: ['lucide-react']
+  },
   server: {
     port: 5173,
     open: true,

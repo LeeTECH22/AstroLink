@@ -1,6 +1,7 @@
 
 import { motion } from 'framer-motion'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle'
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw'
 import type { ErrorMessageProps } from '../types'
 
 const ErrorMessage = ({ message, onRetry }: ErrorMessageProps) => {

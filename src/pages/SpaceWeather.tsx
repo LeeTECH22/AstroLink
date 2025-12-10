@@ -1,7 +1,10 @@
 
 import { useQuery } from 'react-query'
 import { motion } from 'framer-motion'
-import { Sun, Zap, AlertTriangle, Activity } from 'lucide-react'
+import Sun from 'lucide-react/dist/esm/icons/sun'
+import Zap from 'lucide-react/dist/esm/icons/zap'
+import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle'
+import Activity from 'lucide-react/dist/esm/icons/activity'
 import { format } from 'date-fns'
 import { nasaApi } from '../services/api'
 import LoadingSpinner from '../components/LoadingSpinner'

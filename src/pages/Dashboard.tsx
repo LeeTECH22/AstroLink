@@ -1,20 +1,18 @@
 
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  Camera, 
-  Satellite, 
-  Zap, 
-  Globe, 
-  MapPin, 
-  Image, 
-  Rocket,
-  Star,
-  Moon,
-  Sun,
-  Microscope,
-  Database
-} from 'lucide-react'
+import Camera from 'lucide-react/dist/esm/icons/camera'
+import Satellite from 'lucide-react/dist/esm/icons/satellite'
+import Zap from 'lucide-react/dist/esm/icons/zap'
+import Globe from 'lucide-react/dist/esm/icons/globe'
+import MapPin from 'lucide-react/dist/esm/icons/map-pin'
+import Image from 'lucide-react/dist/esm/icons/image'
+import Rocket from 'lucide-react/dist/esm/icons/rocket'
+import Star from 'lucide-react/dist/esm/icons/star'
+import Moon from 'lucide-react/dist/esm/icons/moon'
+import Sun from 'lucide-react/dist/esm/icons/sun'
+import Microscope from 'lucide-react/dist/esm/icons/microscope'
+import Database from 'lucide-react/dist/esm/icons/database'
 
 const Dashboard = () => {
   const features = [

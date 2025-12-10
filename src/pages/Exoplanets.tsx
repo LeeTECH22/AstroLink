@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from 'react-query'
 import { motion } from 'framer-motion'
-import { Globe, Search, Star, Microscope } from 'lucide-react'
+import Globe from 'lucide-react/dist/esm/icons/globe'
+import Search from 'lucide-react/dist/esm/icons/search'
+import Star from 'lucide-react/dist/esm/icons/star'
+import Microscope from 'lucide-react/dist/esm/icons/microscope'
 import { Scatter } from 'react-chartjs-2'
 import {
   Chart as ChartJS,

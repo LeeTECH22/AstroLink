@@ -1,22 +1,20 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  Rocket, 
-  Menu, 
-  X, 
-  Home, 
-  Camera, 
-  Satellite, 
-  Zap, 
-  Globe, 
-  MapPin, 
-  Image, 
-  Info,
-  Sun,
-  Microscope,
-  Database
-} from 'lucide-react'
+import Rocket from 'lucide-react/dist/esm/icons/rocket'
+import Menu from 'lucide-react/dist/esm/icons/menu'
+import X from 'lucide-react/dist/esm/icons/x'
+import Home from 'lucide-react/dist/esm/icons/home'
+import Camera from 'lucide-react/dist/esm/icons/camera'
+import Satellite from 'lucide-react/dist/esm/icons/satellite'
+import Zap from 'lucide-react/dist/esm/icons/zap'
+import Globe from 'lucide-react/dist/esm/icons/globe'
+import MapPin from 'lucide-react/dist/esm/icons/map-pin'
+import Image from 'lucide-react/dist/esm/icons/image'
+import Info from 'lucide-react/dist/esm/icons/info'
+import Sun from 'lucide-react/dist/esm/icons/sun'
+import Microscope from 'lucide-react/dist/esm/icons/microscope'
+import Database from 'lucide-react/dist/esm/icons/database'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
