@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Calendar from 'lucide-react/dist/esm/icons/calendar'
 import Camera from 'lucide-react/dist/esm/icons/camera'
@@ -11,15 +11,15 @@ import ErrorMessage from '../components/ErrorMessage'
 
 const APOD = () => {
   const [selectedDate, setSelectedDate] = useState('')
-  
-  const { data, isLoading, error, refetch } = useQuery(
-    ['apod', selectedDate],
-    () => nasaApi.getAPOD(selectedDate),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000, // 10 minutes
-    }
-  )
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['apod', selectedDate],
+    queryFn: () => nasaApi.getAPOD(selectedDate),
+    select: (response) => response.data,
+
+    // 10 minutes
+    staleTime: 10 * 60 * 1000
+  })
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date)
@@ -34,7 +34,7 @@ const APOD = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to load the Astronomy Picture of the Day. Please try again."
         onRetry={() => refetch()}
       />
@@ -56,7 +56,7 @@ const APOD = () => {
           </h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Discover the cosmos! Each day NASA features a different image or photograph 
+          Discover the cosmos! Each day NASA features a different image or photograph
           of our fascinating universe, along with a brief explanation written by a professional astronomer.
         </p>
       </motion.div>
@@ -169,9 +169,9 @@ const APOD = () => {
             <div className="card">
               <h4 className="text-lg font-semibold text-white mb-3">About APOD</h4>
               <p className="text-gray-300 text-sm leading-relaxed">
-                The Astronomy Picture of the Day (APOD) is a website provided by NASA and 
-                Michigan Technological University. It has been running since June 16, 1995, 
-                and features a different astronomical image each day with explanations written 
+                The Astronomy Picture of the Day (APOD) is a website provided by NASA and
+                Michigan Technological University. It has been running since June 16, 1995,
+                and features a different astronomical image each day with explanations written
                 by professional astronomers.
               </p>
             </div>

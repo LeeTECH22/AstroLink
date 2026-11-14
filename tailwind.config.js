@@ -7,6 +7,33 @@ export default {
   theme: {
     extend: {
       colors: {
+        // --- AstroLink design system (see ASTROLINK design tokens) ---
+        // Surfaces (dark space theme)
+        surface: {
+          base: '#080D1B',     // primary background
+          panel: '#101A2D',    // secondary background
+          card: '#17243A',     // card background
+          elevated: '#1E2E48', // raised card / hover
+          border: '#243550'    // hairline borders
+        },
+        // Accents
+        brand: {
+          DEFAULT: '#398BFF',  // primary accent
+          soft: '#5AA2FF',
+          cyan: '#36D6E7'      // secondary accent
+        },
+        // Text
+        ink: {
+          DEFAULT: '#F4F7FF',  // primary text
+          soft: '#B7C4D8',     // secondary text
+          muted: '#899BB5'     // muted text
+        },
+        // Semantic states
+        state: {
+          success: '#39D6A0',
+          warning: '#FFBE55',
+          error: '#FF6878'
+        },
         nasa: {
           blue: '#0B3D91',
           red: '#FC3D21',

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Globe from 'lucide-react/dist/esm/icons/globe'
 import Calendar from 'lucide-react/dist/esm/icons/calendar'
@@ -10,21 +10,35 @@ import { nasaApi } from '../services/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorMessage from '../components/ErrorMessage'
 
+// Guarded time formatting: EPIC image records can omit/malform the date field,
+// and both `.split()` on undefined and date-fns `format()` on an invalid date
+// throw and would blank the page.
+const safeTime = (value: unknown): string => {
+  if (!value) return 'Unknown'
+  const date = new Date(value as string)
+  if (Number.isNaN(date.getTime())) return 'Unknown'
+  try {
+    return format(date, 'HH:mm:ss')
+  } catch {
+    return 'Unknown'
+  }
+}
+
 const EarthImages = () => {
   const [selectedDate, setSelectedDate] = useState('')
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['earth-images', selectedDate],
-    () => nasaApi.getEarthImages(selectedDate),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['earth-images', selectedDate],
+    queryFn: () => nasaApi.getEarthImages(selectedDate),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000
+  })
 
   const getImageUrl = (image: any) => {
-    const date = image.date.split(' ')[0].replace(/-/g, '/')
-    return `https://api.nasa.gov/EPIC/archive/natural/${date}/png/${image.image}.png?api_key=gWIJqBXp1aTBXFaTDnd7GI9xOYlHfQBMe15cq4qd`
+    const rawDate = String(image?.date || '').split(' ')[0]
+    if (!rawDate) return ''
+    const date = rawDate.replace(/-/g, '/')
+    return `https://api.nasa.gov/EPIC/archive/natural/${date}/png/${image.image}.png?api_key=DEMO_KEY`
   }
 
   if (isLoading) {
@@ -33,7 +47,7 @@ const EarthImages = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to load Earth images. Please try again."
         onRetry={() => refetch()}
       />
@@ -53,7 +67,7 @@ const EarthImages = () => {
           <h1 className="text-4xl font-bold text-white">Earth Images (EPIC)</h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          View our planet from space with NASA's EPIC (Earth Polychromatic Imaging Camera) 
+          View our planet from space with NASA's EPIC (Earth Polychromatic Imaging Camera)
           aboard the DSCOVR satellite, positioned at the L1 Lagrange point.
         </p>
       </motion.div>
@@ -124,11 +138,11 @@ const EarthImages = () => {
                       loading="lazy"
                     />
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div>
                       <h3 className="font-semibold text-white mb-2">
-                        Earth - {format(new Date(image.date), 'HH:mm:ss')}
+                        Earth - {safeTime(image.date)}
                       </h3>
                       <div className="text-sm text-gray-400 space-y-1">
                         <p>Date: {image.date?.split(' ')[0]}</p>
@@ -141,7 +155,7 @@ const EarthImages = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-2">
                       <button
                         onClick={() => window.open(getImageUrl(image), '_blank')}
@@ -186,18 +200,18 @@ const EarthImages = () => {
               <div>
                 <h4 className="text-white font-medium mb-2">Mission Overview</h4>
                 <p>
-                  EPIC (Earth Polychromatic Imaging Camera) is aboard the DSCOVR satellite, 
-                  positioned at the L1 Lagrange point between Earth and the Sun, about 1.5 million 
-                  kilometers from Earth. This unique position provides a constant view of the 
+                  EPIC (Earth Polychromatic Imaging Camera) is aboard the DSCOVR satellite,
+                  positioned at the L1 Lagrange point between Earth and the Sun, about 1.5 million
+                  kilometers from Earth. This unique position provides a constant view of the
                   sunlit side of Earth.
                 </p>
               </div>
               <div>
                 <h4 className="text-white font-medium mb-2">Image Details</h4>
                 <p>
-                  EPIC takes images of the entire sunlit face of Earth every 1-2 hours, 
-                  providing a unique perspective of our planet's weather patterns, seasonal 
-                  changes, and natural phenomena. The images are taken in 10 different 
+                  EPIC takes images of the entire sunlit face of Earth every 1-2 hours,
+                  providing a unique perspective of our planet's weather patterns, seasonal
+                  changes, and natural phenomena. The images are taken in 10 different
                   spectral channels.
                 </p>
               </div>

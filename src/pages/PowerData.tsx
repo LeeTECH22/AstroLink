@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Sun from 'lucide-react/dist/esm/icons/sun'
 import MapPin from 'lucide-react/dist/esm/icons/map-pin'
@@ -31,20 +31,31 @@ ChartJS.register(
   Legend
 )
 
+// Convert an internal YYYYMMDD string into a YYYY-MM-DD value for
+// <input type="date">. Returns '' for anything malformed: date-fns `format()`
+// throws a RangeError on an invalid date, which would blank the page while the
+// user is editing the field.
+const toDateInputValue = (compact: string): string => {
+  const match = /^(\d{4})(\d{2})(\d{2})$/.exec(String(compact || ''))
+  if (!match) return ''
+  const [, year, month, day] = match
+  const date = new Date(`${year}-${month}-${day}`)
+  if (Number.isNaN(date.getTime())) return ''
+  return `${year}-${month}-${day}`
+}
+
 const PowerData = () => {
   const [latitude, setLatitude] = useState('33.69')
   const [longitude, setLongitude] = useState('73.05')
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyyMMdd'))
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyyMMdd'))
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['power-data', latitude, longitude, startDate, endDate],
-    () => nasaApi.getPOWERData(latitude, longitude, startDate, endDate),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['power-data', latitude, longitude, startDate, endDate],
+    queryFn: () => nasaApi.getPOWERData(latitude, longitude, startDate, endDate),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000
+  })
 
   const chartData = useMemo(() => {
     if (!data?.properties?.parameter) return null
@@ -148,7 +159,7 @@ const PowerData = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to load POWER data. Please try again."
         onRetry={() => refetch()}
       />
@@ -168,7 +179,7 @@ const PowerData = () => {
           <h1 className="text-4xl font-bold text-white">POWER Climate Data</h1>
         </div>
         <p className="text-gray-200 max-w-2xl mx-auto">
-          Access NASA's Prediction Of Worldwide Energy Resources (POWER) data for 
+          Access NASA's Prediction Of Worldwide Energy Resources (POWER) data for
           climate and solar energy analysis at any location worldwide.
         </p>
       </motion.div>
@@ -224,7 +235,7 @@ const PowerData = () => {
             </label>
             <input
               type="date"
-              value={format(new Date(startDate.substring(0, 4) + '-' + startDate.substring(4, 6) + '-' + startDate.substring(6, 8)), 'yyyy-MM-dd')}
+              value={toDateInputValue(startDate)}
               onChange={(e) => setStartDate(e.target.value.replace(/-/g, ''))}
               className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
             />
@@ -236,7 +247,7 @@ const PowerData = () => {
             </label>
             <input
               type="date"
-              value={format(new Date(endDate.substring(0, 4) + '-' + endDate.substring(4, 6) + '-' + endDate.substring(6, 8)), 'yyyy-MM-dd')}
+              value={toDateInputValue(endDate)}
               onChange={(e) => setEndDate(e.target.value.replace(/-/g, ''))}
               className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
             />
@@ -261,8 +272,8 @@ const PowerData = () => {
             <div className="card text-center">
               <TrendingUp className="h-8 w-8 text-red-400 mx-auto mb-3" />
               <div className="text-2xl font-bold text-white mb-1">
-                {data.properties?.parameter?.T2M ? 
-                  Math.round((Object.values(data.properties.parameter.T2M) as number[]).reduce((a, b) => a + b, 0) / Object.values(data.properties.parameter.T2M).length * 10) / 10 
+                {data.properties?.parameter?.T2M ?
+                  Math.round((Object.values(data.properties.parameter.T2M) as number[]).reduce((a, b) => a + b, 0) / Object.values(data.properties.parameter.T2M).length * 10) / 10
                   : 'N/A'}°C
               </div>
               <div className="text-gray-200">Avg Temperature</div>
@@ -271,7 +282,7 @@ const PowerData = () => {
             <div className="card text-center">
               <Sun className="h-8 w-8 text-yellow-400 mx-auto mb-3" />
               <div className="text-2xl font-bold text-white mb-1">
-                {data.properties?.parameter?.ALLSKY_SFC_SW_DWN ? 
+                {data.properties?.parameter?.ALLSKY_SFC_SW_DWN ?
                   Math.round((Object.values(data.properties.parameter.ALLSKY_SFC_SW_DWN) as number[]).reduce((a, b) => a + b, 0) / Object.values(data.properties.parameter.ALLSKY_SFC_SW_DWN).length * 100) / 100
                   : 'N/A'}
               </div>
@@ -323,8 +334,8 @@ const PowerData = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-300">Elevation:</span>
                     <span className="text-white">
-                      {typeof data.properties?.parameter?.elevation === 'number' 
-                        ? `${data.properties.parameter.elevation} m` 
+                      {typeof data.properties?.parameter?.elevation === 'number'
+                        ? `${data.properties.parameter.elevation} m`
                         : 'N/A'}
                     </span>
                   </div>
@@ -353,7 +364,7 @@ const PowerData = () => {
         </motion.div>
       )}
     </div>
-  )
+  );
 }
 
 export default PowerData

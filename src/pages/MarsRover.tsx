@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Satellite from 'lucide-react/dist/esm/icons/satellite'
 import Camera from 'lucide-react/dist/esm/icons/camera'
@@ -14,14 +14,12 @@ const MarsRover = () => {
   const [sol, setSol] = useState('1000')
   const [camera, setCamera] = useState('')
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['mars-photos', rover, sol, camera],
-    () => nasaApi.getMarsPhotos(rover, sol, camera),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['mars-photos', rover, sol, camera],
+    queryFn: () => nasaApi.getMarsPhotos(rover, sol, camera),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000
+  })
 
   const rovers = [
     { value: 'curiosity', label: 'Curiosity', active: true },
@@ -33,46 +31,22 @@ const MarsRover = () => {
   const cameras = {
     curiosity: [
       { value: '', label: 'All Cameras' },
-      { value: 'FHAZ', label: 'Front Hazard Avoidance Camera' },
-      { value: 'RHAZ', label: 'Rear Hazard Avoidance Camera' },
-      { value: 'MAST', label: 'Mast Camera' },
-      { value: 'CHEMCAM', label: 'Chemistry and Camera Complex' },
-      { value: 'MAHLI', label: 'Mars Hand Lens Imager' },
-      { value: 'MARDI', label: 'Mars Descent Imager' },
-      { value: 'NAVCAM', label: 'Navigation Camera' },
+      { value: 'NAV_LEFT_B', label: 'Navigation Camera - Left' },
+      { value: 'NAV_RIGHT_B', label: 'Navigation Camera - Right' },
+      { value: 'FHAZ_LEFT_B', label: 'Front Hazard Avoidance - Left' },
+      { value: 'FHAZ_RIGHT_B', label: 'Front Hazard Avoidance - Right' },
+      { value: 'MAST_LEFT', label: 'Mast Camera - Left' },
+      { value: 'MAST_RIGHT', label: 'Mast Camera - Right' },
+      { value: 'CHEMCAM_RMI', label: 'Chemistry & Camera (ChemCam RMI)' },
     ],
     perseverance: [
       { value: '', label: 'All Cameras' },
-      { value: 'EDL_RUCAM', label: 'Rover Up-Look Camera' },
-      { value: 'EDL_RDCAM', label: 'Rover Down-Look Camera' },
-      { value: 'EDL_DDCAM', label: 'Descent Stage Down-Look Camera' },
-      { value: 'EDL_PUCAM1', label: 'Parachute Up-Look Camera A' },
-      { value: 'EDL_PUCAM2', label: 'Parachute Up-Look Camera B' },
-      { value: 'NAVCAM_LEFT', label: 'Navigation Camera - Left' },
-      { value: 'NAVCAM_RIGHT', label: 'Navigation Camera - Right' },
-      { value: 'MCZ_RIGHT', label: 'Mast Camera Zoom - Right' },
-      { value: 'MCZ_LEFT', label: 'Mast Camera Zoom - Left' },
-      { value: 'FRONT_HAZCAM_LEFT_A', label: 'Front Hazard Camera - Left' },
-      { value: 'FRONT_HAZCAM_RIGHT_A', label: 'Front Hazard Camera - Right' },
-      { value: 'REAR_HAZCAM_LEFT', label: 'Rear Hazard Camera - Left' },
-      { value: 'REAR_HAZCAM_RIGHT', label: 'Rear Hazard Camera - Right' },
+      { value: 'MCZ_LEFT', label: 'Mastcam-Z - Left' },
+      { value: 'MCZ_RIGHT', label: 'Mastcam-Z - Right' },
+      { value: 'SUPERCAM_RMI', label: 'SuperCam Remote Micro-Imager' },
     ],
-    opportunity: [
-      { value: '', label: 'All Cameras' },
-      { value: 'FHAZ', label: 'Front Hazard Avoidance Camera' },
-      { value: 'RHAZ', label: 'Rear Hazard Avoidance Camera' },
-      { value: 'NAVCAM', label: 'Navigation Camera' },
-      { value: 'PANCAM', label: 'Panoramic Camera' },
-      { value: 'MINITES', label: 'Miniature Thermal Emission Spectrometer' },
-    ],
-    spirit: [
-      { value: '', label: 'All Cameras' },
-      { value: 'FHAZ', label: 'Front Hazard Avoidance Camera' },
-      { value: 'RHAZ', label: 'Rear Hazard Avoidance Camera' },
-      { value: 'NAVCAM', label: 'Navigation Camera' },
-      { value: 'PANCAM', label: 'Panoramic Camera' },
-      { value: 'MINITES', label: 'Miniature Thermal Emission Spectrometer' },
-    ],
+    opportunity: [{ value: '', label: 'All Cameras' }],
+    spirit: [{ value: '', label: 'All Cameras' }],
   }
 
   if (isLoading) {
@@ -81,7 +55,7 @@ const MarsRover = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to load Mars rover photos. Please try again."
         onRetry={() => refetch()}
       />
@@ -101,7 +75,7 @@ const MarsRover = () => {
           <h1 className="text-4xl font-bold text-white">Mars Rover Photos</h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Explore the Red Planet through the eyes of NASA's Mars rovers. 
+          Explore the Red Planet through the eyes of NASA's Mars rovers.
           View stunning photos captured by various cameras on different missions.
         </p>
       </motion.div>
@@ -200,10 +174,20 @@ const MarsRover = () => {
               </div>
               {data.photos?.length > 0 && (
                 <div className="text-sm text-gray-400">
-                  Rover: {rover.charAt(0).toUpperCase() + rover.slice(1)} | Sol: {sol}
+                  Rover: {rover.charAt(0).toUpperCase() + rover.slice(1)} | Sol:{' '}
+                  {String(data._meta?.returnedSol ?? sol)}
                 </div>
               )}
             </div>
+            {data._meta && (
+              <p className="text-xs text-gray-500 mt-3">
+                Source: {String(data._meta.source || 'NASA')}
+                {data._meta.fallbackSolUsed
+                  ? ` · No images for the requested sol, showing sol ${String(data._meta.returnedSol)}`
+                  : ''}
+                {data._meta.note ? ` · ${String(data._meta.note)}` : ''}
+              </p>
+            )}
           </div>
 
           {/* Photos */}
@@ -225,7 +209,7 @@ const MarsRover = () => {
                       loading="lazy"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <h4 className="font-semibold text-white">
                       {photo.camera.full_name}
@@ -237,7 +221,7 @@ const MarsRover = () => {
                       <p>Camera: {photo.camera.name}</p>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => window.open(photo.img_src, '_blank')}
                     className="mt-4 w-full btn-primary text-sm"

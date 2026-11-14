@@ -13,8 +13,8 @@ cd ..
 
 echo.
 echo Starting NASA Data Explorer...
-echo Frontend will be available at: http://localhost:3000
-echo Backend API will be available at: http://localhost:5000
+echo Frontend will be available at: http://localhost:5173
+echo Backend API will be available at: http://localhost:5001
 echo.
 
 start cmd /k "cd server && npm start"

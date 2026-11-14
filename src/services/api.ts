@@ -11,14 +11,41 @@ import type {
   TechPortResponse,
   SmallBodyData,
   EarthdataResponse,
-  ExoplanetData
+  ExoplanetData,
+  ProviderCatalogResponse,
+  ProviderDataEnvelope,
+  AiStatus,
+  AiExplainResponse,
+  AiResearchResponse,
+  ResearchChatMessage,
+  AdsSearchResponse
 } from '../types'
+import type { ResearchCategory } from '../data/nasaResearch'
+import type { NasaResearchQuestion } from '../lib/supabase'
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? (typeof window !== 'undefined' ? '/api' : 'http://localhost:5001/api')
+// `||` (not `??`) so an empty VITE_API_URL (as shipped in .env.example) still
+// falls back to the same-origin `/api` path. In development Vite proxies `/api`
+// to the local Express server; in production the deployed backend URL must be
+// supplied through VITE_API_URL (see .env.example / deployment docs).
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 const NASA_BASE_URL = 'https://api.nasa.gov'
-// Use NASA DEMO_KEY if no key provided to ensure client-side fallbacks work.
-const NASA_API_KEY = import.meta.env.VITE_NASA_API_KEY ?? 'DEMO_KEY'
+// The browser must never hold a private NASA key. Client-side fallbacks use
+// NASA's public DEMO_KEY only; any real key stays server-side (NASA_API_KEY).
+const NASA_DEMO_KEY = 'DEMO_KEY'
+
+// Strip HTML + decode common entities (NASA's WordPress APOD feed returns HTML).
+const stripHtml = (value: unknown): string =>
+  String(value ?? '')
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim()
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -27,10 +54,7 @@ const api = axios.create({
 
 // Request interceptor
 api.interceptors.request.use(
-  (config) => {
-    console.log(`Making request to: ${config.url}`)
-    return config
-  },
+  (config) => config,
   (error) => {
     return Promise.reject(error)
   }
@@ -67,13 +91,27 @@ export const nasaApi = {
     try {
       return await api.get('/apod', { params: { date }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
-      if (NASA_API_KEY) {
-        return await axios.get(`${NASA_BASE_URL}/planetary/apod`, {
-          params: { api_key: NASA_API_KEY, date },
-          timeout: 30000,
-        })
+      // Backend unreachable: read the current NASA WordPress APOD feed directly
+      // (the legacy api.nasa.gov APOD endpoint is being retired).
+      const res = await axios.get('https://science.nasa.gov/wp-json/wp/v2/apod-basic', {
+        params: { per_page: date ? 100 : 1, page: 1 },
+        timeout: 30000,
+      })
+      const items: any[] = Array.isArray(res.data) ? res.data : []
+      const item = date ? items.find((i) => i.date === date) : items[0]
+      if (!item) throw err
+      const isImage = item.media_type === 'image'
+      const data: APODData = {
+        date: item.date,
+        title: stripHtml(item.title),
+        explanation: stripHtml(item.explanation),
+        media_type: item.media_type,
+        url: isImage ? item.hdurl || item.url : item.url,
+        hdurl: isImage ? item.hdurl : undefined,
+        copyright: item.copyright ? stripHtml(item.copyright) : undefined,
+        service_version: 'v1',
       }
-      throw err
+      return { data, status: 200, statusText: 'OK', headers: {}, config: res.config } as AxiosResponse<APODData>
     }
   },
 
@@ -86,15 +124,22 @@ export const nasaApi = {
     try {
       return await api.get('/mars-photos', { params: { rover, sol, camera }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
-      if (NASA_API_KEY) {
-        const params: Record<string, string> = { api_key: NASA_API_KEY, sol }
-        if (camera) params.camera = camera
-        return await axios.get(
-          `${NASA_BASE_URL}/mars-photos/api/v1/rovers/${rover}/photos`,
-          { params, timeout: 30000 }
-        )
-      }
-      throw err
+      // Backend unreachable: read NASA's current Mars raw-image feed directly
+      // (the legacy mars-photos API was retired on 2025-10-08).
+      const category = rover === 'perseverance' ? 'mars2020' : rover === 'curiosity' ? 'msl' : 'mer'
+      const url = `https://mars.nasa.gov/rss/api/?feed=raw_images&category=${category}&feedtype=json&num=60&order=sol+desc&sol=${encodeURIComponent(sol)}`
+      const res = await axios.get(url, { timeout: 30000 })
+      const images: any[] = Array.isArray(res.data?.images) ? res.data.images : []
+      const photos = images.map((i) => ({
+        id: i.imageid,
+        sol: i.sol,
+        camera: { name: i.camera?.instrument || 'UNKNOWN', full_name: i.camera?.instrument || 'UNKNOWN' },
+        img_src: i.image_files?.full_res || i.image_files?.large || i.image_files?.medium || i.image_files?.small || '',
+        earth_date: i.date_taken_utc ? String(i.date_taken_utc).slice(0, 10) : undefined,
+        rover: { id: 0, name: rover, landing_date: '', launch_date: '', status: '' },
+      }))
+      const data = { photos } as MarsRoverResponse
+      return { data, status: 200, statusText: 'OK', headers: {}, config: res.config } as AxiosResponse<MarsRoverResponse>
     }
   },
 
@@ -106,9 +151,9 @@ export const nasaApi = {
     try {
       return await api.get('/neo', { params: { start_date: startDate, end_date: endDate }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
-      if (NASA_API_KEY) {
+      if (NASA_DEMO_KEY) {
         return await axios.get(`${NASA_BASE_URL}/neo/rest/v1/feed`, {
-          params: { start_date: startDate, end_date: endDate, api_key: NASA_API_KEY },
+          params: { start_date: startDate, end_date: endDate, api_key: NASA_DEMO_KEY },
           timeout: 30000,
         })
       }
@@ -121,24 +166,31 @@ export const nasaApi = {
     try {
       return await api.get('/donki', { params: { type }, headers: { 'x-suppress-error': 'true' } })
     } catch (err) {
+      // Backend unreachable. DONKI's FLR path is broken, so flares come from the
+      // live NOAA SWPC feed while CMEs / geomagnetic storms come from DONKI.
       const base = `${NASA_BASE_URL}/DONKI`
-      if (type === 'all' || !type) {
-        const [flr, cme] = await Promise.all([
-          axios.get(`${base}/FLR`, { params: { api_key: NASA_API_KEY }, timeout: 30000 }),
-          axios.get(`${base}/CME`, { params: { api_key: NASA_API_KEY }, timeout: 30000 }),
-         ])
-        const data: SpaceWeatherResponse = {
-          solarFlares: (flr.data || []),
-          cmes: (cme.data || []),
-        }
-        return { data, status: 200, statusText: 'OK', headers: {}, config: flr.config } as AxiosResponse<SpaceWeatherResponse>
+      const params = { api_key: NASA_DEMO_KEY }
+      const [cme, gst, noaa] = await Promise.all([
+        axios.get(`${base}/CME`, { params, timeout: 30000 }),
+        axios.get(`${base}/GST`, { params, timeout: 30000 }).catch(() => ({ data: [], config: {} } as any)),
+        axios
+          .get('https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json', { timeout: 30000 })
+          .catch(() => ({ data: [], config: {} } as any)),
+      ])
+      const solarFlares = (noaa.data || []).map((f: any) => ({
+        flrID: `NOAA-${f.begin_time}`,
+        beginTime: f.begin_time,
+        peakTime: f.max_time,
+        endTime: f.end_time,
+        classType: f.max_class,
+        instruments: [],
+      }))
+      const data: SpaceWeatherResponse = {
+        solarFlares,
+        cmes: cme.data || [],
+        geomagneticStorms: gst.data || [],
       }
-      const endpoint = type.toUpperCase()
-      const res = await axios.get(`${base}/${endpoint}`, { params: { api_key: NASA_API_KEY }, timeout: 30000 })
-      const data: SpaceWeatherResponse = type === 'flr'
-        ? { solarFlares: (res.data || []), cmes: [] }
-        : { solarFlares: [], cmes: (res.data || []) }
-      return { data, status: 200, statusText: 'OK', headers: res.headers || {}, config: res.config } as AxiosResponse<SpaceWeatherResponse>
+      return { data, status: 200, statusText: 'OK', headers: {}, config: cme.config } as AxiosResponse<SpaceWeatherResponse>
     }
   },
 
@@ -156,7 +208,7 @@ export const nasaApi = {
         ? `${NASA_BASE_URL}/EPIC/api/natural/date/${date}`
         : `${NASA_BASE_URL}/EPIC/api/natural`
       return await axios.get(url, {
-        params: { api_key: NASA_API_KEY },
+        params: { api_key: NASA_DEMO_KEY },
         timeout: 30000,
       })
     }
@@ -215,6 +267,37 @@ export const nasaApi = {
       }
     })(),
 
+  // 8b. POWER monthly trend data (Earth Trend Detective). Reuses the existing
+  // POWER client with a direct NASA POWER monthly fallback.
+  getPowerTrend: async (
+    latitude: string = '31.418',
+    longitude: string = '73.079',
+    startYear: string = '2015',
+    endYear: string = '2024',
+    parameters: string = 'T2M,PRECTOTCORR,ALLSKY_SFC_SW_DWN'
+  ): Promise<AxiosResponse<PowerDataResponse>> => {
+    try {
+      return await api.get('/power/trend', {
+        params: { latitude, longitude, startYear, endYear, parameters },
+        headers: { 'x-suppress-error': 'true' },
+        timeout: 60000,
+      })
+    } catch (err) {
+      return await axios.get('https://power.larc.nasa.gov/api/temporal/monthly/point', {
+        params: {
+          parameters,
+          community: 'RE',
+          longitude,
+          latitude,
+          start: startYear,
+          end: endYear,
+          format: 'JSON',
+        },
+        timeout: 60000,
+      })
+    }
+  },
+
   // 9. TechPort - NASA Technology Projects
   getTechPortProjects: async (projectId?: string): Promise<AxiosResponse<TechPortResponse>> => {
     try {
@@ -222,7 +305,7 @@ export const nasaApi = {
     } catch (err) {
       if (projectId) {
         return await axios.get(`${NASA_BASE_URL}/techport/api/projects/${projectId}`, {
-          params: { api_key: NASA_API_KEY },
+          params: { api_key: NASA_DEMO_KEY },
           timeout: 30000,
         })
       }
@@ -268,9 +351,13 @@ export const nasaApi = {
     }
   },
 
-  // 14. ADS - Astrophysics Data System
-  getADSData: (query: string = 'black hole', rows: number = 10): Promise<AxiosResponse<any>> =>
-    api.get('/ads', { params: { q: query, rows }, headers: { 'x-suppress-error': 'true' } }),
+  // 14. ADS - Astrophysics Data System (requires its own backend ADS_API_KEY)
+  getADSData: (
+    query: string = 'black hole',
+    rows: number = 10,
+    page: number = 1
+  ): Promise<AxiosResponse<AdsSearchResponse>> =>
+    api.get('/ads', { params: { q: query, rows, page }, headers: { 'x-suppress-error': 'true' } }),
 
   // 15. Exoplanet Archive
   getExoplanets: async (limit: number = 100): Promise<AxiosResponse<ExoplanetData[]>> => {
@@ -283,6 +370,161 @@ export const nasaApi = {
       return res as AxiosResponse<ExoplanetData[]>
     }
   },
+
+  // 16. Multi-source data fusion: provider catalog + health (§4)
+  getProviders: (): Promise<AxiosResponse<ProviderCatalogResponse>> =>
+    api.get('/providers', { headers: { 'x-suppress-error': 'true' } }),
+
+  // 17. Unified data fetch through the provider layer (provenance preserved)
+  getProviderData: <T = any>(
+    provider: string,
+    params: Record<string, string | number> = {}
+  ): Promise<AxiosResponse<ProviderDataEnvelope<T>>> =>
+    api.get(`/data/${provider}`, { params, headers: { 'x-suppress-error': 'true' }, timeout: 40000 }),
+
+  // 18. AstroLink Intelligence — AI narration status (§3)
+  getAiStatus: (): Promise<AxiosResponse<AiStatus>> =>
+    api.get('/ai/status', { headers: { 'x-suppress-error': 'true' } }),
+
+  // 19. AstroLink Intelligence — explain deterministic results (never invents data)
+  aiExplain: (question: string, facts: Record<string, unknown>): Promise<AxiosResponse<AiExplainResponse>> =>
+    api.post('/ai/explain', { question, facts }, { headers: { 'x-suppress-error': 'true' }, timeout: 45000 }),
+
+  // 20. NASA AI Research — restricted research assistant (question-bank scope).
+  getResearchCategories: (): Promise<AxiosResponse<{ categories: ResearchCategory[] }>> =>
+    api.get('/research/categories', { headers: { 'x-suppress-error': 'true' } }),
+
+  researchAsk: (question: string, history: ResearchChatMessage[]): Promise<AxiosResponse<AiResearchResponse>> =>
+    api.post('/ai/research', { question, history }, { headers: { 'x-suppress-error': 'true' }, timeout: 60000 }),
+}
+
+export interface ResearchStreamHandlers {
+  onToken: (token: string) => void
+  onDone?: (meta: { provider?: string; model?: string | null }) => void
+  onError?: (message: string) => void
+}
+
+/**
+ * Stream a NASA research answer from the secure backend (SSE over POST).
+ * The OpenAI key never reaches the browser — only server-generated text does.
+ */
+export const researchStream = async (
+  question: string,
+  history: ResearchChatMessage[],
+  handlers: ResearchStreamHandlers,
+  signal?: AbortSignal
+): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/ai/research/stream`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, history }),
+    signal,
+  })
+
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`
+    try {
+      const data = await response.json()
+      if (data && (data.details || data.error)) message = data.details || data.error
+    } catch {
+      // Non-JSON error body; keep the generic message.
+    }
+    handlers.onError?.(message)
+    return
+  }
+
+  if (!response.body) {
+    handlers.onError?.('Streaming is not supported in this browser.')
+    return
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  // Server-Sent Events are separated by a blank line; each event carries one
+  // `data: {json}` line.
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    let idx
+    while ((idx = buffer.indexOf('\n\n')) >= 0) {
+      const raw = buffer.slice(0, idx)
+      buffer = buffer.slice(idx + 2)
+      const line = raw.split('\n').find((l) => l.startsWith('data:'))
+      if (!line) continue
+      const payload = line.slice(5).trim()
+      if (!payload) continue
+      try {
+        const event = JSON.parse(payload)
+        if (event.type === 'token' && typeof event.value === 'string') handlers.onToken(event.value)
+        else if (event.type === 'done') handlers.onDone?.({ provider: event.provider, model: event.model })
+        else if (event.type === 'error') handlers.onError?.(event.message || 'The AI assistant is unavailable.')
+      } catch {
+        // Ignore malformed fragments.
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// NASA Research Questions from Supabase
+// ---------------------------------------------------------------------------
+
+export interface ResearchQuestionsResponse {
+  questions: NasaResearchQuestion[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
+export interface ResearchQuestionResponse {
+  question: NasaResearchQuestion
+}
+
+export interface ResearchSearchResponse extends ResearchQuestionsResponse {
+  searchQuery: string
+}
+
+/**
+ * Fetch research questions from Supabase with pagination and optional category filter
+ */
+export const getResearchQuestions = async (
+  page: number = 1,
+  limit: number = 50,
+  category?: number
+): Promise<ResearchQuestionsResponse> => {
+  const params: Record<string, string | number> = { page, limit }
+  if (category !== undefined) params.category = category
+  const response = await api.get('/research/questions', { params })
+  return response.data
+}
+
+/**
+ * Fetch a single research question by ID
+ */
+export const getResearchQuestion = async (id: number): Promise<ResearchQuestionResponse> => {
+  const response = await api.get(`/research/questions/${id}`)
+  return response.data
+}
+
+/**
+ * Full-text search for research questions
+ */
+export const searchResearchQuestions = async (
+  query: string,
+  page: number = 1,
+  limit: number = 50,
+  category?: number
+): Promise<ResearchSearchResponse> => {
+  const params: Record<string, string | number> = { q: query, page, limit }
+  if (category !== undefined) params.category = category
+  const response = await api.get('/research/questions/search', { params })
+  return response.data
 }
 
 export default api

@@ -1,26 +1,31 @@
 {
   "name": "astrolink-nasa-explorer",
   "version": "1.0.0",
-  "description": "AstroLink - Complete NASA Data Explorer with React, TypeScript, and 15 NASA APIs by Bruce Lee",
+  "description": "AstroLink - Complete NASA Data Explorer with React, TypeScript, and 15 NASA APIs by Viper NEX",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k \"npm run server\" \"vite\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "server": "cd server && npm install && node index.js",
-    "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
-    "install:all": "npm install && cd server && npm install",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --ext ts,tsx --fix"
+    "server": "npm --prefix server start",
+    "dev:full": "npm run dev",
+    "install:all": "npm install && npm --prefix server install",
+    "lint": "eslint . --report-unused-disable-directives",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "axios": "^1.12.2",
+    "@supabase/supabase-js": "^2.119.0",
+    "@tanstack/react-query": "^5.107.1",
+    "@tanstack/react-query-devtools": "^5.107.1",
+    "axios": "^1.21.1",
     "chart.js": "^4.5.1",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0",
+    "express": "^5.3.0",
     "framer-motion": "^12.23.24",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.546.0",
@@ -28,11 +33,13 @@
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.2.0",
     "react-leaflet": "^5.0.0",
-    "react-query": "^3.39.3",
-    "react-router-dom": "^7.9.4",
+    "react-router-dom": "^7.18.5",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/leaflet": "^1.9.21",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
@@ -44,10 +51,22 @@
     "eslint": "^9.38.0",
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "jsdom": "^31.0.1",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.16",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5.9.3",
-    "vite": "^7.1.12"
+    "vite": "^7.1.12",
+    "vitest": "^5.1.0"
+  },
+  "overrides": {
+    "path-to-regexp": "8.4.2",
+    "glob@7.2.3": {
+      "minimatch": "3.1.5",
+      "brace-expansion": "1.1.22"
+    },
+    "minimatch@3": {
+      "brace-expansion": "1.1.22"
+    }
   },
   "keywords": [
     "nasa",
@@ -56,6 +75,6 @@
     "typescript",
     "apis"
   ],
-  "author": "Bruce Lee",
+  "author": "Viper NEX",
   "license": "MIT"
 }

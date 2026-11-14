@@ -1,5 +1,5 @@
 
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Sun from 'lucide-react/dist/esm/icons/sun'
 import Zap from 'lucide-react/dist/esm/icons/zap'
@@ -10,15 +10,27 @@ import { nasaApi } from '../services/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorMessage from '../components/ErrorMessage'
 
+// date-fns `format()` throws a RangeError on an invalid date. NASA/NOAA feeds
+// can omit or malform timestamp fields, so every date render is guarded to keep
+// the page from blanking when a field is missing or unexpected.
+const safeFormat = (value: unknown, pattern: string, fallback = 'Unknown'): string => {
+  if (!value) return fallback
+  const date = new Date(value as string)
+  if (Number.isNaN(date.getTime())) return fallback
+  try {
+    return format(date, pattern)
+  } catch {
+    return fallback
+  }
+}
+
 const SpaceWeather = () => {
-  const { data, isLoading, error, refetch } = useQuery(
-    ['space-weather'],
-    () => nasaApi.getSpaceWeather('all'),
-    {
-      select: (response) => response.data,
-      staleTime: 5 * 60 * 1000,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['space-weather'],
+    queryFn: () => nasaApi.getSpaceWeather('all'),
+    select: (response) => response.data,
+    staleTime: 5 * 60 * 1000
+  })
 
   if (isLoading) {
     return <LoadingSpinner text="Loading space weather data..." />
@@ -26,7 +38,7 @@ const SpaceWeather = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to load space weather data. Please try again."
         onRetry={() => refetch()}
       />
@@ -35,6 +47,9 @@ const SpaceWeather = () => {
 
   const solarFlares = data?.solarFlares || []
   const cmes = data?.cmes || []
+  const geomagneticStorms = data?.geomagneticStorms || []
+  const meta = data?._meta
+  const flareSource = meta ? String(meta.flareSource || '') : ''
 
   return (
     <div className="space-y-8">
@@ -49,7 +64,7 @@ const SpaceWeather = () => {
           <h1 className="text-4xl font-bold text-white">Space Weather</h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Monitor solar activity and space weather events that can affect Earth's 
+          Monitor solar activity and space weather events that can affect Earth's
           magnetosphere, satellites, and communication systems.
         </p>
       </motion.div>
@@ -80,6 +95,21 @@ const SpaceWeather = () => {
         </div>
       </motion.div>
 
+      {/* Data provenance */}
+      {meta && (
+        <div className="card text-xs text-gray-400 space-y-1">
+          <p>
+            Solar flares: {String(meta.flareSource || 'unavailable')}
+            {flareSource.includes('NOAA') ? " (DONKI's FLR endpoint is currently unavailable)" : ''}
+          </p>
+          <p>Coronal mass ejections: {String(meta.cmeSource || 'unavailable')}</p>
+          <p>Geomagnetic storms: {String(meta.gstSource || 'unavailable')}</p>
+          <p>
+            Window: {String(meta.windowStart || '')} → {String(meta.windowEnd || '')}
+          </p>
+        </div>
+      )}
+
       {/* Solar Flares */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -108,7 +138,7 @@ const SpaceWeather = () => {
                       {flare.classType || 'Unknown Class'} Solar Flare
                     </h3>
                     <p className="text-gray-400 text-sm">
-                      {flare.beginTime ? format(new Date(flare.beginTime), 'PPpp') : 'Time unknown'}
+                      {safeFormat(flare.beginTime, 'PPpp', 'Time unknown')}
                     </p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -119,18 +149,18 @@ const SpaceWeather = () => {
                     {flare.classType || 'Unknown'}
                   </span>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
                     <span className="text-gray-400">Peak Time:</span>
                     <div className="text-white">
-                      {flare.peakTime ? format(new Date(flare.peakTime), 'HH:mm:ss') : 'Unknown'}
+                      {safeFormat(flare.peakTime, 'HH:mm:ss')}
                     </div>
                   </div>
                   <div>
                     <span className="text-gray-400">End Time:</span>
                     <div className="text-white">
-                      {flare.endTime ? format(new Date(flare.endTime), 'HH:mm:ss') : 'Ongoing'}
+                      {safeFormat(flare.endTime, 'HH:mm:ss', 'Ongoing')}
                     </div>
                   </div>
                   <div>
@@ -179,14 +209,14 @@ const SpaceWeather = () => {
                       Coronal Mass Ejection
                     </h3>
                     <p className="text-gray-400 text-sm">
-                      {cme.startTime ? format(new Date(cme.startTime), 'PPpp') : 'Time unknown'}
+                      {safeFormat(cme.startTime, 'PPpp', 'Time unknown')}
                     </p>
                   </div>
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-500 text-white">
                     CME
                   </span>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-400">Source Location:</span>
@@ -240,6 +270,51 @@ const SpaceWeather = () => {
         )}
       </motion.div>
 
+      {/* Geomagnetic Storms */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        className="card"
+      >
+        <div className="flex items-center space-x-3 mb-6">
+          <Activity className="h-6 w-6 text-purple-400" />
+          <h2 className="text-2xl font-bold text-white">Geomagnetic Storms (GST)</h2>
+        </div>
+        {geomagneticStorms.length > 0 ? (
+          <div className="space-y-4">
+            {geomagneticStorms.slice(0, 10).map((storm, index) => (
+              <div
+                key={storm.gstID || index}
+                className="bg-gray-800/50 rounded-lg p-4 border-l-4 border-purple-400"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Geomagnetic Storm</h3>
+                    <p className="text-gray-400 text-sm">
+                      {safeFormat(storm.startTime, 'PPpp', 'Time unknown')}
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500 text-white">
+                    GST
+                  </span>
+                </div>
+                {storm.allKpIndex && storm.allKpIndex.length > 0 && (
+                  <p className="text-sm text-gray-300">
+                    Peak Kp index: {Math.max(...storm.allKpIndex.map((k) => k.kpIndex))}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Activity className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-400">No geomagnetic storms detected in the past 7 days</p>
+          </div>
+        )}
+      </motion.div>
+
       {/* Info Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -252,15 +327,15 @@ const SpaceWeather = () => {
           <div>
             <h4 className="text-white font-medium mb-2">Solar Flares</h4>
             <p>
-              Solar flares are intense bursts of radiation from the Sun's surface. 
-              They're classified by intensity: A, B, C, M, and X (strongest). 
+              Solar flares are intense bursts of radiation from the Sun's surface.
+              They're classified by intensity: A, B, C, M, and X (strongest).
               X-class flares can disrupt radio communications and GPS systems.
             </p>
           </div>
           <div>
             <h4 className="text-white font-medium mb-2">Coronal Mass Ejections</h4>
             <p>
-              CMEs are massive bursts of solar wind and magnetic fields released from the Sun. 
+              CMEs are massive bursts of solar wind and magnetic fields released from the Sun.
               When directed toward Earth, they can cause geomagnetic storms and beautiful auroras.
             </p>
           </div>

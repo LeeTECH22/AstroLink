@@ -21,16 +21,17 @@ export default function ErrorBanner() {
     return () => window.removeEventListener('api-error', handler as EventListener)
   }, [])
 
-  if (!error) return null
-
+ if (!error || window.location.pathname.startsWith('/nasa-ai-research')) {
+  return null
+}
   return (
-    <div className="bg-red-50 border-b border-red-200 text-red-800">
+    <div className="bg-red-500/10 border-b border-red-500/30 text-red-200">
       <div className="container mx-auto px-4 py-3 flex items-start gap-3">
         <span className="font-semibold">API Error</span>
         <div className="text-sm">
           <div>{error.message}</div>
           {error.status && (
-            <div className="mt-1 opacity-70">Status: {error.status}{error.url ? ` · ${error.url}` : ''}</div>
+            <div className="mt-1 opacity-80">Status: {error.status}{error.url ? ` · ${error.url}` : ''}</div>
           )}
         </div>
         <div className="ml-auto flex gap-2">

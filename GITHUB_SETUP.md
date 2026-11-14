@@ -7,7 +7,7 @@
 3. Select "New repository"
 4. Fill in the details:
    - **Repository name**: `astrolink-nasa-explorer`
-   - **Description**: `AstroLink - Professional NASA Data Explorer with 15+ APIs by Bruce Lee`
+   - **Description**: `AstroLink - Professional NASA Data Explorer with 15+ APIs by Viper NEX`
    - **Visibility**: Public (recommended) or Private
    - **DO NOT** initialize with README, .gitignore, or license (we already have these)
 5. Click "Create repository"
@@ -43,7 +43,7 @@ git push -u origin main
 - ✅ Error handling and fallbacks
 - ✅ Complete documentation
 - ✅ MIT License
-- ✅ Developer credits (Bruce Lee)
+- ✅ Developer credits (Viper NEX)
 
 ### Repository Features:
 - 📁 Clean project structure

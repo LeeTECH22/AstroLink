@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 /// <reference types="node" />
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import * as path from 'path'
 
@@ -32,7 +32,9 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // Do not ship source maps to production: they would expose the full
+    // application source (and any accidental debug strings) to the public.
+    sourcemap: false,
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
@@ -44,5 +46,12 @@ export default defineConfig({
         }
       }
     }
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    css: false,
+    include: ['src/**/*.{test,spec}.{ts,tsx}']
   }
 })

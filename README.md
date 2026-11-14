@@ -1,172 +1,141 @@
-# 🚀 AstroLink - NASA Data Explorer
+# 🚀 AstroLink — NASA Earth Intelligence Platform
 
-> **Developed by Bruce Lee** - A comprehensive, full-stack web application that integrates multiple NASA public APIs to provide an interactive platform for exploring space data, from daily astronomy pictures to real-time space weather monitoring.
+> **Developed by Viper NEX** — A full-stack web application that integrates NASA public APIs to explore space **and** Earth-system data, with the added focus of the NASA Space Apps Challenge 2026 theme: *"Be An Earth System Trend Detective!"*
 
 ![AstroLink](https://img.shields.io/badge/AstroLink-NASA%20Data%20Explorer-blue?style=for-the-badge&logo=nasa)
-![Developer](https://img.shields.io/badge/Developer-Bruce%20Lee-green?style=for-the-badge)
-![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)
+![Developer](https://img.shields.io/badge/Developer-Viper%20NEX-green?style=for-the-badge)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)
+![Express](https://img.shields.io/badge/Express-backend-black?style=for-the-badge&logo=express)
 
-## 🌟 Live Demo
+Live: https://astro-link-xi.vercel.app/
 
-- **Frontend (Vite dev)**: `http://localhost:5173`
-- **Backend API (Express dev)**: `http://localhost:5001`
+## 🌍 Earth System Trend Detective (challenge focus)
 
-## 📸 Screenshots
+- Multi-year **NASA POWER** monthly analysis (default **Faisalabad 31.418 N, 73.079 E**).
+- Variables: 2 m temperature (`T2M`), precipitation (`PRECTOTCORR`), solar radiation (`ALLSKY_SFC_SW_DWN`).
+- Monthly + annual aggregation, seasonal climatology, two-location comparison.
+- Statistics: OLS linear regression, **Mann-Kendall**, **Sen's slope**, p-values, 95 % confidence intervals.
+- Completeness / missing-value analysis and robust outlier detection.
+- **Provenance on every result**: location, variable + unit, dataset, date range, resolution, valid
+  count, missing %, trend direction + magnitude, significance, uncertainty and limitations.
+- Scientific honesty: NASA POWER is **gridded/model-derived (reanalysis), not ground measurements**;
+  statistical significance is **not** causation or climate attribution.
 
-![AstroLink Dashboard](https://via.placeholder.com/800x400/1a237e/ffffff?text=AstroLink+Dashboard)
-*Main dashboard showing all NASA data sources*
+## 🤖 AstroLink Intelligence (AI research agent)
 
-![Natural Events Map](https://via.placeholder.com/800x400/1a237e/ffffff?text=Interactive+Natural+Events+Map)
-*Interactive map showing real-time natural disasters and events*
+A grounded assistant that runs deterministic analysis first and then optionally asks an LLM to
+**narrate** it. The model is never the source of numbers and may not invent measurements,
+statistics, citations or API responses. Configured through **server-side** environment variables
+(OpenAI-compatible or Anthropic); runs fully in **deterministic-only** mode when unconfigured.
 
-## ✨ Features
+## 🛰 Multi-source Data Explorer & Geospatial
 
-### 🌟 Core Functionality
-- **Astronomy Picture of the Day (APOD)** - Daily space images with detailed explanations
-- **Mars Rover Photos** - Browse images from NASA's Mars rovers with advanced filtering
-- **Near Earth Objects (NEO)** - Track asteroids with interactive charts and data visualization
-- **Space Weather (DONKI)** - Monitor solar flares and coronal mass ejections
-- **Earth Images (EPIC)** - View our planet from space with satellite imagery
-- **Natural Events (EONET)** - Track natural disasters with interactive maps
-- **Image Library** - Search NASA's vast collection of space imagery
+A unified provider layer with normalized provenance envelopes for **NASA POWER** (reanalysis),
+**EONET** (events), **FIRMS** (observations, keyed), **CMR/Earthdata** (catalog) and **GIBS**
+(imagery), with caching, timeouts, bounded retries, per-provider circuit breakers and health
+metrics. The Geospatial Explorer (`/geospatial`) overlays **real** EONET events and (when configured)
+FIRMS fire hotspots on an interactive map.
 
-### 🎨 User Experience
-- **Responsive Design** - Works perfectly on desktop, tablet, and mobile
-- **Professional Light Theme** - Clean, modern UI with smooth animations
-- **Interactive Charts** - Data visualization with Chart.js
-- **Interactive Maps** - Leaflet.js integration for geographic data
-- **Real-time Data** - Live updates from NASA APIs
-- **Advanced Filtering** - Filter data by date, category, rover, camera, etc.
+## 🛡 CyberShield (defensive security)
 
-### 🛠 Technical Features
-- **Full-Stack Architecture** - React frontend with Express.js backend
-- **API Security** - Backend proxy to hide API keys
-- **Type Safety** - Full TypeScript implementation
-- **Modern React** - Hooks, Context, and latest React patterns
-- **Performance Optimized** - React Query for caching and data management
-- **Error Handling** - Comprehensive error boundaries and user feedback
+Extends the security foundation with multi-signal abuse detection, progressive **auto-expiring**
+temporary restrictions, an admin token (deny-by-default), and a sanitized, access-controlled audit
+log with a monitoring dashboard (`/cybershield`). In-process, no Redis required.
+
+## ✨ Existing features (preserved)
+
+- **APOD**, **Mars Rover**, **Near Earth Objects**, **Space Weather (DONKI)**, **Earth Images (EPIC)**,
+  **Natural Events (EONET)**, **Image Library**, **TechPort**, **Small Bodies**, **Earth Data Search**,
+  **Exoplanets**, **Astrophysics Data**.
 
 ## 🏗 Architecture
 
 ```
 AstroLink/
-├── src/                    # React frontend
-│   ├── components/         # Reusable UI components
-│   ├── pages/             # Main application pages
-│   ├── services/          # API service layer
-│   └── types/             # TypeScript type definitions
-├── server/                # Express.js backend
-│   └── index.js          # API proxy server
-└── public/               # Static assets
+├── src/                     # React + TypeScript frontend
+│   ├── components/          # Reusable UI
+│   ├── pages/               # Pages (incl. EarthTrends, Intelligence, DataExplorer, Geospatial, CyberShield)
+│   ├── services/            # API layer (api.ts)
+│   ├── utils/               # trendStats.ts (statistics), chartHelpers.ts
+│   └── types/               # Shared types
+├── server/                  # Express backend (entry: index.js)
+│   └── lib/                 # providers.js, ai.js, cybershield.js
+└── dist/                    # Production build output
 ```
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 18+ and npm
+```bash
+git clone https://github.com/LeeTECH22/AstroLink.git
+cd AstroLink
+npm run install:all
+npm run dev:full            # frontend :5173 + backend :5001 (Vite proxies /api)
+```
 
-### Installation
+### Environment variables
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/LeeTECH22/AstroLink.git
-   cd AstroLink
-   ```
+Copy `.env.example` to `.env` and fill in values (see the file for full documentation):
 
-2. **Install all dependencies**
-   ```bash
-   npm run install:all
-   ```
+- `NASA_API_KEY` (**backend only**, required) — optional `_2` / `_3` or `NASA_API_KEYS` for failover.
+- `ALLOWED_ORIGINS` — CORS allowlist (include your deployed frontend origin).
+- `VITE_API_URL` — deployed backend base URL (e.g. `https://<backend>/api`); empty uses `/api`.
+- Optional: `ADMIN_TOKEN`, `FIRMS_MAP_KEY`, `AI_PROVIDER` + `OPENAI_*`/`ANTHROPIC_*`, `AI_MAX_TOKENS`.
 
-3. **Start the application**
-   ```bash
-   npm run dev:full
-   ```
-   This starts both the React frontend (port 5173) and Express backend (port 5001)
+> **Security:** never put a private key in a `VITE_*` variable — Vite inlines those into the public
+> bundle. The frontend only ever uses NASA's public `DEMO_KEY` for client-side fallbacks.
 
-4. **Open your browser**
-   Navigate to `http://localhost:3000`
+## 🧪 Testing & quality
 
-### NASA API Key
-- Get a free key at [api.nasa.gov](https://api.nasa.gov/)
-- For local dev, set `NASA_API_KEY` in `.env` (backend)
-- For production (Vercel), set `VITE_NASA_API_KEY` in Environment Variables (frontend)
-- Optionally set `VITE_API_URL` to your backend’s `/api` URL; otherwise the app will call NASA endpoints directly (using `VITE_NASA_API_KEY`) when the proxy is unavailable
+```bash
+npx vitest run            # frontend tests (40)
+npx tsc --noEmit          # type check
+npm run lint              # ESLint
+npm run build             # production build
+npm --prefix server test  # backend tests (42)
+npm audit --omit=dev      # production dependency audit
+```
 
-## 📡 NASA APIs Integrated
-
-| API | Description | Features |
-|-----|-------------|----------|
-| **APOD** | Astronomy Picture of the Day | Daily images, historical archive, HD versions |
-| **Mars Rover Photos** | Images from Mars rovers | Multiple rovers, camera filters, sol-based search |
-| **NeoWs** | Near Earth Object Web Service | Asteroid tracking, size estimates, approach dates |
-| **DONKI** | Space Weather Database | Solar flares, CME tracking, geomagnetic storms |
-| **EPIC** | Earth Polychromatic Imaging Camera | Full Earth images, natural color, daily updates |
-| **EONET** | Earth Observatory Natural Event Tracker | Disaster tracking, real-time events, geographic data |
-| **NASA Image Library** | NASA's image and video library | Search functionality, multiple media types |
-
-## 🛠 Technology Stack
-
-### Frontend
-- **React 18** - Modern UI framework with concurrent features
-- **TypeScript** - Type-safe JavaScript development
-- **Tailwind CSS** - Utility-first CSS framework
-- **React Query** - Data fetching and caching
-- **React Router** - Client-side routing
-- **Chart.js** - Interactive charts and visualizations
-- **Leaflet** - Interactive maps
-- **Lucide React** - Beautiful icon library
-
-### Backend
-- **Express.js** - Web application framework
-- **Axios** - HTTP client for API requests
-- **CORS** - Cross-origin resource sharing
-- **dotenv** - Environment variable management
+Current status: frontend **40/40**, backend **42/42**, `tsc` clean, build PASS, production audit
+**0 vulnerabilities** (7 dev-only advisories remain in the ESLint toolchain).
 
 ## 🚀 Deployment
 
-### Deploy to Vercel (Frontend)
-1. Connect this repo to Vercel
-2. In Vercel Project Settings → Environment Variables add:
-   - `VITE_NASA_API_KEY = YOUR_KEY`
-   - `VITE_API_URL = https://your-backend.example.com/api` (optional)
-3. Redeploy
-4. The app will use the backend if available; otherwise it will automatically call NASA APIs directly with `VITE_NASA_API_KEY`
+- **Frontend:** Vercel — set `VITE_API_URL` to the backend URL and add the site origin to
+  `ALLOWED_ORIGINS` on the backend.
+- **Backend:** deploy the `server/` folder, set the backend env vars, expose a public HTTPS URL.
 
-### Deploy to Railway/Render (Backend)
-1. Deploy the `server` folder
-2. Set environment variable: `NASA_API_KEY`
-3. Set start command: `npm start`
-4. Expose the public URL and use it as `VITE_API_URL` on Vercel
+Full instructions, manual steps and verification: `ASTROLINK_DEPLOYMENT_GUIDE.md`.
 
-## 🤝 Contributing
+## 📚 Documentation
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+| Document | Contents |
+|---|---|
+| `ASTROLINK_FINAL_PROGRESS.md` | Progress, status, limitations, manual actions |
+| `ASTROLINK_SCIENTIFIC_VALIDATION.md` | Methods + synthetic-dataset validation |
+| `ASTROLINK_AI_AGENT_REPORT.md` | Grounded AI agent |
+| `ASTROLINK_DATA_FUSION_REPORT.md` | Unified provider layer |
+| `ASTROLINK_ML_VALIDATION.md` | Anomaly / forecast validation |
+| `ASTROLINK_CYBERSHIELD_REPORT.md` | Defensive security |
+| `ASTROLINK_FINAL_TEST_RESULTS.md` | Exact test evidence |
+| `ASTROLINK_DEPLOYMENT_GUIDE.md` | Deployment + manual steps |
+| `ASTROLINK_HACKATHON_DEMO.md` | Demonstration walkthrough |
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](LICENSE).
 
 ## 👨‍💻 Developer
 
-**Bruce Lee**
-- Passionate about space exploration and making NASA's incredible data accessible to everyone
-- Specialized in React, TypeScript, and modern web technologies
+**Viper NEX** — building tools that make NASA's data accessible and scientifically honest.
 
 ## 🙏 Acknowledgments
 
-- NASA for providing free, open access to incredible space data
-- NASA API Team for maintaining excellent documentation
-- Open Source Community for the amazing tools and libraries
+- NASA for open access to its data and APIs.
+- The open-source community for the tools and libraries.
 
 ---
 
-**Built with ❤️ for space exploration enthusiasts and developers**
-
-*Explore the cosmos, one API call at a time* 🌌
+*Internal project version: V1.0.0 (not displayed in the product UI). AstroLink is not endorsed by
+NASA and has no official partnership with NASA.*

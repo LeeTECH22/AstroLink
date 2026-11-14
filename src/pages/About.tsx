@@ -132,15 +132,15 @@ const About = () => {
           </motion.div>
           <h1 className="text-5xl font-bold text-white">About AstroLink</h1>
         </div>
-        
+
         <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-          A comprehensive web application that integrates multiple NASA public APIs to provide 
-          an interactive platform for exploring space data, from daily astronomy pictures to 
+          A comprehensive web application that integrates multiple NASA public APIs to provide
+          an interactive platform for exploring space data, from daily astronomy pictures to
           real-time space weather monitoring.
         </p>
         <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
           <p className="text-lg text-blue-300">
-            <strong>Developer:</strong> Bruce Lee
+            <strong>Developer:</strong> Viper NEX
           </p>
           <p className="text-sm text-gray-400 mt-2">
             Passionate about space exploration and making NASA's incredible data accessible to everyone.
@@ -159,16 +159,16 @@ const About = () => {
           <Info className="h-6 w-6 text-blue-400" />
           <h2 className="text-2xl font-bold text-white">Project Overview</h2>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-white">Mission</h3>
             <p className="text-gray-300 leading-relaxed">
-              To make NASA's incredible space data accessible and engaging for everyone. 
-              This project demonstrates how modern web technologies can be used to create 
+              To make NASA's incredible space data accessible and engaging for everyone.
+              This project demonstrates how modern web technologies can be used to create
               immersive experiences with real scientific data.
             </p>
-            
+
             <h3 className="text-xl font-semibold text-white">Features</h3>
             <ul className="text-gray-300 space-y-2">
               <li className="flex items-center space-x-2">
@@ -193,15 +193,15 @@ const About = () => {
               </li>
             </ul>
           </div>
-          
+
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-white">Architecture</h3>
             <p className="text-gray-300 leading-relaxed">
-              Built with a modern full-stack architecture featuring a React frontend 
-              with TypeScript, an Express.js backend for API proxying, and comprehensive 
+              Built with a modern full-stack architecture featuring a React frontend
+              with TypeScript, an Express.js backend for API proxying, and comprehensive
               data visualization capabilities.
             </p>
-            
+
             <div className="bg-gray-800/50 rounded-lg p-4">
               <h4 className="text-white font-medium mb-2">Tech Stack Highlights</h4>
               <div className="grid grid-cols-2 gap-2 text-sm text-gray-300">
@@ -225,7 +225,7 @@ const About = () => {
         className="space-y-6"
       >
         <h2 className="text-3xl font-bold text-white text-center">Integrated NASA APIs</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {apis.map((api, index) => {
             const Icon = api.icon
@@ -246,12 +246,12 @@ const About = () => {
                     <p className="text-sm text-gray-400">{api.description}</p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-3">
                   <div className="bg-gray-800/50 rounded p-2">
                     <code className="text-xs text-green-400">{api.endpoint}</code>
                   </div>
-                  
+
                   <ul className="space-y-1">
                     {api.features.map((feature, idx) => (
                       <li key={idx} className="text-sm text-gray-300 flex items-center space-x-2">
@@ -275,7 +275,7 @@ const About = () => {
         className="card"
       >
         <h2 className="text-2xl font-bold text-white mb-6">Technologies Used</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {technologies.map((tech, index) => (
             <motion.div
@@ -300,7 +300,7 @@ const About = () => {
         className="card bg-blue-500/10 border-blue-500/30"
       >
         <h2 className="text-2xl font-bold text-white mb-6">Getting Started</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h3 className="text-xl font-semibold text-white mb-4">For Users</h3>
@@ -319,7 +319,7 @@ const About = () => {
               </li>
             </ol>
           </div>
-          
+
           <div>
             <h3 className="text-xl font-semibold text-white mb-4">For Developers</h3>
             <div className="space-y-3">
@@ -331,9 +331,9 @@ const About = () => {
               </div>
               <p className="text-gray-300 text-sm">
                 Get your free NASA API key at{' '}
-                <a 
-                  href="https://api.nasa.gov/" 
-                  target="_blank" 
+                <a
+                  href="https://api.nasa.gov/"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:text-blue-300 inline-flex items-center space-x-1"
                 >
@@ -354,7 +354,7 @@ const About = () => {
         className="text-center space-y-6"
       >
         <h2 className="text-2xl font-bold text-white">Explore More</h2>
-        
+
         <div className="flex flex-wrap justify-center gap-4">
           <a
             href="https://api.nasa.gov/"
@@ -366,7 +366,7 @@ const About = () => {
             <span>NASA Open Data</span>
             <ExternalLink className="h-4 w-4" />
           </a>
-          
+
           <a
             href="https://github.com"
             target="_blank"
@@ -378,7 +378,7 @@ const About = () => {
             <ExternalLink className="h-4 w-4" />
           </a>
         </div>
-        
+
         <p className="text-gray-400 text-sm">
           Built with ❤️ for space exploration enthusiasts and developers
         </p>

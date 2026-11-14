@@ -1,15 +1,17 @@
 import { useState, useMemo } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Globe from 'lucide-react/dist/esm/icons/globe'
 import Search from 'lucide-react/dist/esm/icons/search'
 import Star from 'lucide-react/dist/esm/icons/star'
 import Microscope from 'lucide-react/dist/esm/icons/microscope'
+import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle'
 import { Scatter } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  LogarithmicScale,
   PointElement,
   Title,
   Tooltip,
@@ -25,6 +27,7 @@ import type { ExoplanetData, ProcessedExoplanetData } from '../types'
 ChartJS.register(
   CategoryScale,
   LinearScale,
+  LogarithmicScale,
   PointElement,
   ScatterController,
   Title,
@@ -36,14 +39,12 @@ const Exoplanets = () => {
   const [limit, setLimit] = useState(100)
   const [filterType, setFilterType] = useState('all')
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['exoplanets', limit],
-    () => nasaApi.getExoplanets(limit),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['exoplanets', limit],
+    queryFn: () => nasaApi.getExoplanets(limit),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000
+  })
 
   const processedData: ProcessedExoplanetData = useMemo(() => {
     const defaultStats = {
@@ -54,10 +55,10 @@ const Exoplanets = () => {
     }
 
     if (!data || !Array.isArray(data)) {
-      return { 
-        filtered: [], 
-        chartData: null, 
-        stats: defaultStats 
+      return {
+        filtered: [],
+        chartData: null,
+        stats: defaultStats
       }
     }
 
@@ -84,29 +85,39 @@ const Exoplanets = () => {
       })
     }
 
-    // Create chart data
-    const chartData = {
-      datasets: [
-        {
-          label: 'Exoplanets (Radius vs Orbital Period)',
-          data: filtered.slice(0, 200).map((planet: any) => ({
-            x: safeParseFloat(planet.pl_orbper),
-            y: safeParseFloat(planet.pl_rade),
-            label: planet.pl_name,
-            hostStar: planet.hostname,
-          })),
-          backgroundColor: 'rgba(59, 130, 246, 0.6)',
-          borderColor: 'rgb(59, 130, 246)',
-          pointRadius: 4,
-          pointHoverRadius: 6,
-        },
-      ],
-    }
+    // Create chart data. A logarithmic x-axis can only plot strictly positive
+    // values, so non-positive / non-finite points are dropped rather than
+    // letting Chart.js throw (which would blank the whole page).
+    const chartPoints = filtered
+      .slice(0, 200)
+      .map((planet: any) => ({
+        x: safeParseFloat(planet.pl_orbper),
+        y: safeParseFloat(planet.pl_rade),
+        label: planet.pl_name,
+        hostStar: planet.hostname,
+      }))
+      .filter((point) => Number.isFinite(point.x) && point.x > 0 && Number.isFinite(point.y) && point.y > 0)
+
+    const chartData =
+      chartPoints.length > 0
+        ? {
+            datasets: [
+              {
+                label: 'Exoplanets (Radius vs Orbital Period)',
+                data: chartPoints,
+                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                borderColor: 'rgb(59, 130, 246)',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+              },
+            ],
+          }
+        : null
 
     // Calculate stats
     const stats = {
       total: filtered.length,
-      avgRadius: filtered.length > 0 
+      avgRadius: filtered.length > 0
         ? filtered.reduce((sum: number, p: ExoplanetData) => {
             const radius = typeof p.pl_rade === 'string' ? parseFloat(p.pl_rade) : p.pl_rade
             return sum + (radius || 0)
@@ -123,6 +134,11 @@ const Exoplanets = () => {
 
     return { filtered, chartData, stats }
   }, [data, filterType])
+
+  // The backend only returns `demo: true` records when the live NASA Exoplanet
+  // Archive request failed. Those records are clearly labelled below and are
+  // never presented as genuine live observations.
+  const hasDemoData = Array.isArray(data) && data.some((planet: ExoplanetData) => planet.demo === true)
 
   const chartOptions = {
     ...createScatterChartOptions(
@@ -185,6 +201,28 @@ const Exoplanets = () => {
           their properties, and the stars they orbit around.
         </p>
       </motion.div>
+
+      {/* Honest notice: the live archive was unreachable, so the figures below
+          are a labelled fallback and must not be read as live science data. */}
+      {hasDemoData && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card border-state-warning/40 bg-state-warning/5"
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-state-warning" />
+            <div>
+              <h3 className="section-title">Demonstration fallback — not live data</h3>
+              <p className="mt-1 text-sm leading-relaxed text-ink-soft">
+                The NASA Exoplanet Archive could not be reached, so the records shown below are a
+                small labelled demonstration fallback, not live observations. Use “Refresh Data” to
+                retry the archive.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Controls */}
       <motion.div
@@ -333,14 +371,14 @@ const Exoplanets = () => {
                       {planet.hostname}
                     </td>
                     <td className="py-3 px-4 text-gray-300">
-                      {planet.pl_rade ? 
-                        (typeof planet.pl_rade === 'string' ? parseFloat(planet.pl_rade) : planet.pl_rade).toFixed(2) 
+                      {planet.pl_rade ?
+                        (typeof planet.pl_rade === 'string' ? parseFloat(planet.pl_rade) : planet.pl_rade).toFixed(2)
                         : 'N/A'
                       }
                     </td>
                     <td className="py-3 px-4 text-gray-300">
-                      {planet.pl_orbper ? 
-                        (typeof planet.pl_orbper === 'string' ? parseFloat(planet.pl_orbper) : planet.pl_orbper).toFixed(1) 
+                      {planet.pl_orbper ?
+                        (typeof planet.pl_orbper === 'string' ? parseFloat(planet.pl_orbper) : planet.pl_orbper).toFixed(1)
                         : 'N/A'
                       }
                     </td>
@@ -355,6 +393,23 @@ const Exoplanets = () => {
               </tbody>
             </table>
           </div>
+        </motion.div>
+      )}
+
+      {/* Empty state */}
+      {processedData.filtered.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="card text-center py-12"
+        >
+          <Globe className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-white mb-2">No exoplanets match this filter</h3>
+          <p className="text-gray-400">
+            The loaded dataset contains no planets with the selected characteristics. Try a different
+            planet type or increase the data limit above.
+          </p>
         </motion.div>
       )}
 

@@ -2,9 +2,9 @@
 import { motion } from 'framer-motion'
 import type { LoadingSpinnerProps } from '../types'
 
-const LoadingSpinner = ({ 
-  size = 'md', 
-  text = 'Loading...' 
+const LoadingSpinner = ({
+  size = 'md',
+  text = 'Loading...'
 }: LoadingSpinnerProps) => {
   const sizeClasses = {
     sm: 'w-6 h-6',

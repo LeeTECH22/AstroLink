@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import MapPin from 'lucide-react/dist/esm/icons/map-pin'
 import Filter from 'lucide-react/dist/esm/icons/filter'
@@ -39,18 +39,26 @@ const eventIcons = {
   default: createCustomIcon('#666666', '📍'),
 }
 
+// EONET geometry can be a Point ([lon, lat]) or a Polygon ([[[lon, lat], ...]]).
+// Only a usable numeric Point yields a [lat, lng] pair; everything else is ignored.
+const toLatLng = (coordinates: unknown): [number, number] | null => {
+  if (!Array.isArray(coordinates) || coordinates.length < 2) return null
+  const [lng, lat] = coordinates
+  if (typeof lng !== 'number' || typeof lat !== 'number') return null
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null
+  return [lat, lng]
+}
+
 const NaturalEvents = () => {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map')
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['natural-events', selectedCategory],
-    () => nasaApi.getNaturalEvents(selectedCategory),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['natural-events', selectedCategory],
+    queryFn: () => nasaApi.getNaturalEvents(selectedCategory),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000
+  })
 
   const categories = [
     { value: '', label: 'All Events' },
@@ -94,7 +102,7 @@ const NaturalEvents = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to load natural events data. Please try again."
         onRetry={() => refetch()}
       />
@@ -116,7 +124,7 @@ const NaturalEvents = () => {
           <h1 className="text-4xl font-bold text-white">Natural Events</h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Track natural disasters and events around the world using NASA's 
+          Track natural disasters and events around the world using NASA's
           Earth Observatory Natural Event Tracker (EONET).
         </p>
       </motion.div>
@@ -148,8 +156,8 @@ const NaturalEvents = () => {
             <button
               onClick={() => setViewMode('map')}
               className={`px-4 py-2 rounded-md transition-colors ${
-                viewMode === 'map' 
-                  ? 'bg-blue-600 text-white' 
+                viewMode === 'map'
+                  ? 'bg-blue-600 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -158,8 +166,8 @@ const NaturalEvents = () => {
             <button
               onClick={() => setViewMode('list')}
               className={`px-4 py-2 rounded-md transition-colors ${
-                viewMode === 'list' 
-                  ? 'bg-blue-600 text-white' 
+                viewMode === 'list'
+                  ? 'bg-blue-600 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -182,7 +190,7 @@ const NaturalEvents = () => {
         </div>
         <div className="card text-center">
           <div className="text-3xl font-bold text-red-400 mb-2">
-            {events.filter((event: any) => event.categories?.some((cat: any) => 
+            {events.filter((event: any) => event.categories?.some((cat: any) =>
               ['wildfires', 'volcanoes', 'severeStorms'].includes(cat.id)
             )).length}
           </div>
@@ -190,7 +198,7 @@ const NaturalEvents = () => {
         </div>
         <div className="card text-center">
           <div className="text-3xl font-bold text-blue-400 mb-2">
-            {new Set(events.flatMap((event: any) => 
+            {new Set(events.flatMap((event: any) =>
               event.categories?.map((cat: any) => cat.id) || []
             )).size}
           </div>
@@ -218,13 +226,12 @@ const NaturalEvents = () => {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
                 {events.map((event: any) => {
-                  const geometry = event.geometry?.[0]
-                  if (!geometry?.coordinates) return null
-                  
-                  const [lng, lat] = geometry.coordinates
+                  const point = toLatLng(event.geometry?.[0]?.coordinates)
+                  if (!point) return null
+                  const [lat, lng] = point
                   const category = event.categories?.[0]?.id || 'default'
                   const icon = eventIcons[category as keyof typeof eventIcons] || eventIcons.default
-                  
+
                   return (
                     <Marker key={event.id} position={[lat, lng]} icon={icon}>
                       <Popup>
@@ -232,16 +239,16 @@ const NaturalEvents = () => {
                           <h4 className="font-bold mb-2 text-gray-800">{event.title}</h4>
                           <div className="space-y-1">
                             <p><strong>Type:</strong> {event.categories?.[0]?.title}</p>
-                            <p><strong>Date:</strong> {new Date(geometry.date).toLocaleDateString()}</p>
+                            <p><strong>Date:</strong> {new Date(event.geometry?.[0]?.date).toLocaleDateString()}</p>
                             <p><strong>Location:</strong> {lat.toFixed(2)}°, {lng.toFixed(2)}°</p>
-                            {geometry.magnitudeValue && (
-                              <p><strong>Magnitude:</strong> {geometry.magnitudeValue} {geometry.magnitudeUnit}</p>
+                            {event.geometry?.[0]?.magnitudeValue && (
+                              <p><strong>Magnitude:</strong> {event.geometry[0].magnitudeValue} {event.geometry[0].magnitudeUnit}</p>
                             )}
                           </div>
                           {event.sources?.[0]?.url && (
-                            <a 
-                              href={event.sources[0].url} 
-                              target="_blank" 
+                            <a
+                              href={event.sources[0].url}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="inline-block mt-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
                             >
@@ -264,7 +271,7 @@ const NaturalEvents = () => {
                 {events.slice(0, 20).map((event: any) => {
                   const category = event.categories?.[0]
                   const geometry = event.geometry?.[0]
-                  
+
                   return (
                     <div
                       key={event.id}
@@ -284,21 +291,21 @@ const NaturalEvents = () => {
                           Active
                         </span>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div>
                           <span className="text-gray-400">Location:</span>
                           <div className="text-white">
-                            {geometry?.coordinates 
-                              ? `${geometry.coordinates[1].toFixed(2)}°, ${geometry.coordinates[0].toFixed(2)}°`
-                              : 'Unknown'
-                            }
+                            {(() => {
+                              const point = toLatLng(geometry?.coordinates)
+                              return point ? `${point[0].toFixed(2)}°, ${point[1].toFixed(2)}°` : 'Unknown'
+                            })()}
                           </div>
                         </div>
                         <div>
                           <span className="text-gray-400">Date:</span>
                           <div className="text-white">
-                            {geometry?.date 
+                            {geometry?.date
                               ? new Date(geometry.date).toLocaleDateString()
                               : 'Unknown'
                             }
@@ -311,7 +318,7 @@ const NaturalEvents = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       {event.description && (
                         <div className="mt-3 pt-3 border-t border-gray-700">
                           <p className="text-gray-300 text-sm">{event.description}</p>

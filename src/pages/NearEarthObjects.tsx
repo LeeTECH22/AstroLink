@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Zap from 'lucide-react/dist/esm/icons/zap'
 import Calendar from 'lucide-react/dist/esm/icons/calendar'
@@ -39,14 +39,12 @@ const NearEarthObjects = () => {
   const [endDate, setEndDate] = useState(format(addDays(new Date(), 7), 'yyyy-MM-dd'))
   const [viewMode, setViewMode] = useState<'table' | 'chart'>('table')
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['neo', startDate, endDate],
-    () => nasaApi.getNEO(startDate, endDate),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['neo', startDate, endDate],
+    queryFn: () => nasaApi.getNEO(startDate, endDate),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000
+  })
 
   const processedData = useMemo(() => {
     if (!data?.near_earth_objects) return { allNeos: [], chartData: null, scatterData: null }
@@ -222,7 +220,7 @@ const NearEarthObjects = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to load Near Earth Objects data. Please try again."
         onRetry={() => refetch()}
       />
@@ -242,7 +240,7 @@ const NearEarthObjects = () => {
           <h1 className="text-4xl font-bold text-white">Near Earth Objects</h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Track asteroids and comets that come close to Earth's orbit. 
+          Track asteroids and comets that come close to Earth's orbit.
           Monitor potentially hazardous objects and their approach details.
         </p>
       </motion.div>
@@ -258,7 +256,7 @@ const NearEarthObjects = () => {
           <Calendar className="h-5 w-5 text-blue-400" />
           <h3 className="text-lg font-semibold text-white">Date Range</h3>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -283,7 +281,7 @@ const NearEarthObjects = () => {
             />
           </div>
         </div>
-        
+
         <p className="text-sm text-gray-400 mt-2">
           NASA's NEO API allows date ranges up to 7 days
         </p>
@@ -300,8 +298,8 @@ const NearEarthObjects = () => {
           <button
             onClick={() => setViewMode('table')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              viewMode === 'table' 
-                ? 'bg-blue-600 text-white' 
+              viewMode === 'table'
+                ? 'bg-blue-600 text-white'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -311,8 +309,8 @@ const NearEarthObjects = () => {
           <button
             onClick={() => setViewMode('chart')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              viewMode === 'chart' 
-                ? 'bg-blue-600 text-white' 
+              viewMode === 'chart'
+                ? 'bg-blue-600 text-white'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -346,7 +344,7 @@ const NearEarthObjects = () => {
             </div>
             <div className="card text-center">
               <div className="text-3xl font-bold text-green-400 mb-2">
-                {processedData.allNeos.length > 0 
+                {processedData.allNeos.length > 0
                   ? Math.round(parseFloat(processedData.allNeos[0]?.close_approach_data[0]?.miss_distance?.kilometers || '0') / 1000).toLocaleString()
                   : 0
                 }
@@ -377,26 +375,26 @@ const NearEarthObjects = () => {
                     {processedData.allNeos.slice(0, 20).map((neo, index) => {
                       const approach = neo.close_approach_data[0]
                       const diameter = neo.estimated_diameter?.meters
-                      
+
                       return (
                         <tr key={neo.id} className="border-b border-gray-800 hover:bg-gray-800/50">
                           <td className="py-3 px-4 text-white font-medium">
                             {neo.name}
                           </td>
                           <td className="py-3 px-4 text-gray-300">
-                            {diameter 
+                            {diameter
                               ? `${Math.round(diameter.estimated_diameter_min)}-${Math.round(diameter.estimated_diameter_max)}`
                               : 'Unknown'
                             }
                           </td>
                           <td className="py-3 px-4 text-gray-300">
-                            {approach 
+                            {approach
                               ? Math.round(parseFloat(approach.miss_distance.kilometers)).toLocaleString()
                               : 'Unknown'
                             }
                           </td>
                           <td className="py-3 px-4 text-gray-300">
-                            {approach 
+                            {approach
                               ? Math.round(parseFloat(approach.relative_velocity.kilometers_per_hour)).toLocaleString()
                               : 'Unknown'
                             }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Image from 'lucide-react/dist/esm/icons/image'
 import Search from 'lucide-react/dist/esm/icons/search'
@@ -12,15 +12,13 @@ const ImageLibrary = () => {
   const [searchQuery, setSearchQuery] = useState('earth')
   const [mediaType, setMediaType] = useState('image')
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['nasa-images', searchQuery, mediaType],
-    () => nasaApi.searchImages(searchQuery, mediaType),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-      enabled: searchQuery.length > 0,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['nasa-images', searchQuery, mediaType],
+    queryFn: () => nasaApi.searchImages(searchQuery, mediaType),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000,
+    enabled: searchQuery.length > 0
+  })
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +31,7 @@ const ImageLibrary = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to search NASA image library. Please try again."
         onRetry={() => refetch()}
       />
@@ -55,7 +53,7 @@ const ImageLibrary = () => {
           <h1 className="text-4xl font-bold text-white">NASA Image Library</h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Search through NASA's vast collection of images, videos, and audio files 
+          Search through NASA's vast collection of images, videos, and audio files
           from space missions, astronomical observations, and Earth science.
         </p>
       </motion.div>
@@ -72,7 +70,7 @@ const ImageLibrary = () => {
             <Search className="h-5 w-5 text-blue-400" />
             <h3 className="text-lg font-semibold text-white">Search NASA Library</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -86,7 +84,7 @@ const ImageLibrary = () => {
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Media Type
@@ -102,7 +100,7 @@ const ImageLibrary = () => {
               </select>
             </div>
           </div>
-          
+
           <button type="submit" className="btn-primary">
             Search Library
           </button>
@@ -139,7 +137,7 @@ const ImageLibrary = () => {
                 const data = item.data?.[0]
                 const links = item.links
                 const thumbnail = links?.find((link: any) => link.rel === 'preview')?.href
-                
+
                 return (
                   <motion.div
                     key={data?.nasa_id || index}
@@ -158,7 +156,7 @@ const ImageLibrary = () => {
                         />
                       </div>
                     )}
-                    
+
                     <div className="space-y-3">
                       <div>
                         <h3 className="font-semibold text-white mb-2 line-clamp-2">
@@ -168,7 +166,7 @@ const ImageLibrary = () => {
                           {data?.description || 'No description available'}
                         </p>
                       </div>
-                      
+
                       <div className="text-xs text-gray-500 space-y-1">
                         {data?.date_created && (
                           <p>Date: {new Date(data.date_created).toLocaleDateString()}</p>
@@ -178,7 +176,7 @@ const ImageLibrary = () => {
                           <p>Type: {data.media_type.charAt(0).toUpperCase() + data.media_type.slice(1)}</p>
                         )}
                       </div>
-                      
+
                       <div className="flex space-x-2">
                         {thumbnail && (
                           <button
@@ -221,7 +219,7 @@ const ImageLibrary = () => {
             <h3 className="text-lg font-semibold text-white mb-4">Popular Searches</h3>
             <div className="flex flex-wrap gap-2">
               {[
-                'apollo', 'mars', 'hubble', 'earth', 'moon', 'saturn', 'jupiter', 
+                'apollo', 'mars', 'hubble', 'earth', 'moon', 'saturn', 'jupiter',
                 'nebula', 'galaxy', 'astronaut', 'space station', 'solar system'
               ].map((term) => (
                 <button

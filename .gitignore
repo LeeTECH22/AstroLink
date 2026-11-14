@@ -12,6 +12,8 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+server/.env
+# NOTE: .env.example is intentionally NOT ignored so it can be committed.
 
 # Logs
 npm-debug.log*
@@ -19,11 +21,18 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Local verification artifacts (temporary; never commit)
+server/__live_out.txt
+server/in
+
 # Runtime data
 pids
 *.pid
 *.seed
 *.pid.lock
+
+# Runtime AI usage log (local persistence; never commit)
+server/data/
 
 # Coverage directory used by tools like istanbul
 coverage/

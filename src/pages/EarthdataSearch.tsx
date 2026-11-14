@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Database from 'lucide-react/dist/esm/icons/database'
 import Search from 'lucide-react/dist/esm/icons/search'
@@ -14,14 +14,12 @@ const EarthdataSearch = () => {
   const [keyword, setKeyword] = useState('MODIS')
   const [pageSize, setPageSize] = useState(10)
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['earthdata', keyword, pageSize],
-    () => nasaApi.getEarthdataCollections(keyword, pageSize),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['earthdata', keyword, pageSize],
+    queryFn: () => nasaApi.getEarthdataCollections(keyword, pageSize),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000
+  })
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,7 +32,7 @@ const EarthdataSearch = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to search Earthdata collections. Please try again."
         onRetry={() => refetch()}
       />
@@ -56,7 +54,7 @@ const EarthdataSearch = () => {
           <h1 className="text-4xl font-bold text-white">Earthdata Search</h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Search NASA's Common Metadata Repository (CMR) for Earth observation 
+          Search NASA's Common Metadata Repository (CMR) for Earth observation
           datasets from satellites, aircraft, and ground-based instruments.
         </p>
       </motion.div>
@@ -73,7 +71,7 @@ const EarthdataSearch = () => {
             <Search className="h-5 w-5 text-blue-400" />
             <h3 className="text-lg font-semibold text-white">Search Collections</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -87,7 +85,7 @@ const EarthdataSearch = () => {
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Results Limit
@@ -104,11 +102,11 @@ const EarthdataSearch = () => {
               </select>
             </div>
           </div>
-          
+
           <button type="submit" className="btn-primary">
             Search Collections
           </button>
-          
+
           <div className="text-sm text-gray-400">
             <p><strong>Popular searches:</strong> MODIS, LANDSAT, AIRS, GRACE, GLDAS, GPM, SMAP</p>
           </div>
@@ -166,7 +164,7 @@ const EarthdataSearch = () => {
                     {/* Description */}
                     {collection.summary && (
                       <p className="text-gray-300 leading-relaxed">
-                        {collection.summary.length > 300 
+                        {collection.summary.length > 300
                           ? `${collection.summary.substring(0, 300)}...`
                           : collection.summary
                         }

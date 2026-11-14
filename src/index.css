@@ -5,160 +5,314 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global styles */
-body {
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #04070d 0%, #0a1326 50%, #02040a 100%);
-  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 50px 50px;
-  min-height: 100vh;
-  color: #e5e7eb;
-  color-scheme: dark;
+/* =========================================================================
+   AstroLink design system
+   Dark space theme. Tokens mirror tailwind.config.js (surface / brand / ink).
+   ========================================================================= */
+
+:root {
+  --surface-base: #080d1b;
+  --surface-panel: #101a2d;
+  --surface-card: #17243a;
+  --surface-elevated: #1e2e48;
+  --surface-border: #243550;
+  --brand: #398bff;
+  --brand-cyan: #36d6e7;
+  --ink: #f4f7ff;
+  --ink-soft: #b7c4d8;
+  --ink-muted: #899bb5;
+  --state-success: #39d6a0;
+  --state-warning: #ffbe55;
+  --state-error: #ff6878;
 }
 
-/* Subtle twinkle star overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.15), rgba(255,255,255,0) 60%),
-    radial-gradient(1.5px 1.5px at 70% 10%, rgba(255,255,255,0.12), rgba(255,255,255,0) 60%),
-    radial-gradient(1.5px 1.5px at 40% 80%, rgba(255,255,255,0.1), rgba(255,255,255,0) 60%),
-    radial-gradient(2px 2px at 85% 60%, rgba(255,255,255,0.14), rgba(255,255,255,0) 60%);
-  animation: twinkle 8s ease-in-out infinite;
-  opacity: 0.65;
-}
+@layer base {
+  html {
+    color-scheme: dark;
+  }
 
-@keyframes twinkle {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.15); }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--surface-base);
+    background-image:
+      radial-gradient(1200px 600px at 15% -10%, rgba(57, 139, 255, 0.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(54, 214, 231, 0.07), transparent 55%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Restrained starfield (disabled automatically for reduced-motion users). */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 20% 30%, rgba(255, 255, 255, 0.14), transparent 60%),
+      radial-gradient(1.5px 1.5px at 70% 12%, rgba(255, 255, 255, 0.10), transparent 60%),
+      radial-gradient(1.5px 1.5px at 42% 80%, rgba(255, 255, 255, 0.08), transparent 60%),
+      radial-gradient(1.5px 1.5px at 86% 62%, rgba(255, 255, 255, 0.12), transparent 60%);
+    opacity: 0.7;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  /* Consistent, readable text selection across the dark theme. The browser
+     default (opaque blue) makes light text on light-blue unreadable, so the
+     selection is tuned to the design system: translucent brand blue keeps the
+     ink legible on every surface. Text selection itself is never disabled. */
+  ::selection {
+    background-color: rgba(57, 139, 255, 0.40);
+    color: #ffffff;
+  }
+  ::-moz-selection {
+    background-color: rgba(57, 139, 255, 0.40);
+    color: #ffffff;
+  }
+
+  /* Consistent, visible keyboard focus everywhere. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--surface-panel);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  border-radius: 4px;
+  background: #2c3e5c;
+  border-radius: 6px;
+  border: 2px solid var(--surface-panel);
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: #3a5178;
 }
 
-/* Custom animations */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
+/* ============================== Components ============================== */
+
+@layer components {
+  /* --- Surfaces --- */
+  .card {
+    @apply rounded-2xl border p-6 shadow-lg transition-colors duration-200;
+    background-color: var(--surface-card);
+    border-color: var(--surface-border);
+    color: var(--ink);
   }
-  50% {
-    transform: translateY(-10px);
+
+  .card-hover {
+    @apply cursor-pointer;
+  }
+  .card-hover:hover {
+    background-color: var(--surface-elevated);
+    border-color: #2f4568;
+  }
+
+  .panel {
+    @apply rounded-2xl border p-6;
+    background-color: var(--surface-panel);
+    border-color: var(--surface-border);
+  }
+
+  /* --- Buttons --- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold
+           transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn text-white shadow-sm;
+    background-color: var(--brand);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: #2f7ae6;
+  }
+
+  .btn-secondary {
+    @apply btn;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--ink);
+    border: 1px solid var(--surface-border);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-color: #31507e;
+  }
+
+  .btn-ghost {
+    @apply btn;
+    color: var(--ink-soft);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--ink);
+  }
+
+  /* --- Badges --- */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+    background-color: rgba(57, 139, 255, 0.14);
+    color: #9dc4ff;
+    border: 1px solid rgba(57, 139, 255, 0.28);
+  }
+  .badge-success { background-color: rgba(57, 214, 160, 0.14); color: var(--state-success); border-color: rgba(57, 214, 160, 0.3); }
+  .badge-info    { background-color: rgba(54, 214, 231, 0.14); color: var(--brand-cyan); border-color: rgba(54, 214, 231, 0.3); }
+  .badge-warning { background-color: rgba(255, 190, 85, 0.14); color: var(--state-warning); border-color: rgba(255, 190, 85, 0.3); }
+  .badge-error   { background-color: rgba(255, 104, 120, 0.14); color: var(--state-error); border-color: rgba(255, 104, 120, 0.3); }
+
+  /* --- Forms --- */
+  .label,
+  label {
+    @apply mb-1.5 block text-sm font-medium;
+    color: var(--ink-soft);
+  }
+
+  .input,
+  .select,
+  .textarea {
+    @apply w-full rounded-xl px-3.5 py-2.5 text-sm transition-colors duration-200;
+    background-color: var(--surface-base);
+    border: 1px solid var(--surface-border);
+    color: var(--ink);
+  }
+  .input::placeholder,
+  .textarea::placeholder {
+    color: var(--ink-muted);
+  }
+  .input:focus,
+  .select:focus,
+  .textarea:focus {
+    border-color: var(--brand);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(57, 139, 255, 0.20);
+  }
+
+  /* Native select option lists render on the OS surface. */
+  select option {
+    background-color: var(--surface-panel);
+    color: var(--ink);
+  }
+
+  .helper-text,
+  .text-muted {
+    color: var(--ink-muted);
+  }
+
+  /* --- Page scaffolding --- */
+  .page-title {
+    @apply text-2xl font-bold sm:text-3xl;
+    color: var(--ink);
+  }
+  .section-title {
+    @apply text-lg font-semibold;
+    color: var(--ink);
+  }
+  .page-subtitle {
+    @apply mt-1 text-sm;
+    color: var(--ink-soft);
   }
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+/* ============================== Utilities ============================== */
+
+/* Emoji fallback so glyphs (e.g. ❤️ in the attribution) render as colour
+   emoji on Windows, macOS/iOS and Android instead of a missing-glyph box. */
+.emoji {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji', 'Android Emoji', sans-serif;
+  font-style: normal;
+  line-height: 1;
 }
 
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Glassmorphism effect */
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Loading spinner */
-.spinner {
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid #6366f1;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Chart container */
+/* Charts */
 .chart-container {
   position: relative;
   height: 400px;
   width: 100%;
 }
 
-/* Modern leaflet map theme */
+/* Leaflet map theme (dark) */
 .leaflet-container {
-  background: #f8fafc;
+  background: var(--surface-panel);
   border-radius: 16px;
   overflow: hidden;
 }
-
 .leaflet-tile {
-  filter: brightness(1.1) contrast(1.1) saturate(1.2);
+  filter: brightness(1.05) contrast(1.05) saturate(1.05);
 }
 
-/* Modern button styles */
-.btn-primary {
-  @apply bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl;
+/* Glass surface (used sparingly) */
+.glass {
+  background: rgba(23, 36, 58, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--surface-border);
 }
 
-.btn-secondary {
-  @apply bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg border border-gray-200;
+/* Loading spinner */
+.spinner {
+  border: 3px solid rgba(183, 196, 216, 0.25);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 0.9s linear infinite;
 }
 
-/* Modern card styles */
-.card {
-  @apply bg-gray-900/70 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-white;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.card-hover {
-  @apply hover:bg-gray-800 hover:scale-[1.02] transition-all duration-300 cursor-pointer;
+/* Skeleton shimmer for loading states */
+.skeleton {
+  background: linear-gradient(90deg, #16233a 25%, #1e2e48 37%, #16233a 63%);
+  background-size: 400% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+@keyframes skeleton {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
 }
 
-/* High-contrast text overrides for better accessibility */
-.text-gray-300 { color: #e5e7eb !important; }
-.text-gray-400 { color: #d1d5db !important; }
-.text-gray-500 { color: #cbd5e1 !important; }
-.text-gray-600 { color: #94a3b8 !important; }
-.text-gray-700 { color: #e5e7eb !important; }
-
-/* Form label and helper text defaults */
-label, .form-label { color: #e5e7eb; }
-.helper-text, .text-muted { color: #d1d5db; }
-
-/* Professional gradient backgrounds */
-.gradient-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Legacy helper animations kept intentionally minimal. */
+.animate-float { animation: float 6s ease-in-out infinite; }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
-.gradient-secondary {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
-.gradient-accent {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
+/* =========================================================================
+   Legacy text remaps. Much of the codebase was authored for a light theme and
+   uses gray/ slate text utilities. On this dark surface those literals would
+   be unreadable, so they are remapped to the design-system ink scale.
+   ========================================================================= */
+.text-gray-300, .text-gray-400 { color: var(--ink-soft) !important; }
+.text-gray-500, .text-gray-600 { color: var(--ink-muted) !important; }
+.text-gray-700, .text-gray-800, .text-gray-900 { color: var(--ink-soft) !important; }
+.text-slate-300, .text-slate-400 { color: var(--ink-soft) !important; }
+.text-slate-500, .text-slate-600 { color: var(--ink-muted) !important; }

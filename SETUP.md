@@ -24,10 +24,12 @@ cd ..
 
 ### Step 2: Configure API Key
 
-The NASA API key is already configured in the `.env` file:
+Set your NASA API key in the `.env` file (never commit this file):
 ```
-NASA_API_KEY=gWIJqBXp1aTBXFaTDnd7GI9xOYlHfQBMe15cq4qd
+NASA_API_KEY=YOUR_NASA_API_KEY_HERE
 ```
+Get a free key at https://api.nasa.gov/. The backend reads it server-side only;
+the frontend never receives a private key.
 
 ### Step 3: Start the Application
 
@@ -125,7 +127,7 @@ nasa-data-explorer/
    ```bash
    # Clear npm cache
    npm cache clean --force
-   
+
    # Delete node_modules and reinstall
    rm -rf node_modules package-lock.json
    npm install

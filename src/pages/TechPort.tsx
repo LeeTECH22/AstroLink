@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Rocket from 'lucide-react/dist/esm/icons/rocket'
 import Search from 'lucide-react/dist/esm/icons/search'
@@ -15,14 +15,12 @@ const TechPort = () => {
   const [projectId, setProjectId] = useState('')
   const [searchMode, setSearchMode] = useState<'all' | 'specific'>('all')
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['techport', projectId],
-    () => nasaApi.getTechPortProjects(projectId || undefined),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['techport', projectId],
+    queryFn: () => nasaApi.getTechPortProjects(projectId || undefined),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000
+  })
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +33,7 @@ const TechPort = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to load TechPort data. Please try again."
         onRetry={() => refetch()}
       />
@@ -57,7 +55,7 @@ const TechPort = () => {
           <h1 className="text-4xl font-bold text-white">NASA TechPort</h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Explore NASA's technology portfolio and research projects that are 
+          Explore NASA's technology portfolio and research projects that are
           advancing space exploration and benefiting life on Earth.
         </p>
       </motion.div>
@@ -79,8 +77,8 @@ const TechPort = () => {
             <button
               onClick={() => setSearchMode('all')}
               className={`px-4 py-2 rounded-lg transition-colors ${
-                searchMode === 'all' 
-                  ? 'bg-blue-600 text-white' 
+                searchMode === 'all'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
             >
@@ -89,8 +87,8 @@ const TechPort = () => {
             <button
               onClick={() => setSearchMode('specific')}
               className={`px-4 py-2 rounded-lg transition-colors ${
-                searchMode === 'specific' 
-                  ? 'bg-blue-600 text-white' 
+                searchMode === 'specific'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
             >
@@ -177,7 +175,7 @@ const TechPort = () => {
                     {/* Project Description */}
                     {project.description && (
                       <p className="text-gray-300 leading-relaxed">
-                        {project.description.length > 300 
+                        {project.description.length > 300
                           ? `${project.description.substring(0, 300)}...`
                           : project.description
                         }
@@ -245,7 +243,7 @@ const TechPort = () => {
                       <div>
                         <div className="text-sm text-gray-400 mb-2">Benefits:</div>
                         <p className="text-gray-300 text-sm">
-                          {project.benefits.length > 200 
+                          {project.benefits.length > 200
                             ? `${project.benefits.substring(0, 200)}...`
                             : project.benefits
                           }
@@ -285,7 +283,7 @@ const TechPort = () => {
               <Rocket className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">No Projects Found</h3>
               <p className="text-gray-400">
-                {searchMode === 'specific' 
+                {searchMode === 'specific'
                   ? 'No project found with the specified ID.'
                   : 'No projects available at this time.'
                 }

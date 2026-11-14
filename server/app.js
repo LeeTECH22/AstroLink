@@ -6,7 +6,7 @@ const axios = require('axios');
 dotenv.config();
 
 const app = express();
-const NASA_API_KEY = process.env.NASA_API_KEY || 'gWIJqBXp1aTBXFaTDnd7GI9xOYlHfQBMe15cq4qd';
+const NASA_API_KEY = process.env.NASA_API_KEY || 'DEMO_KEY';
 
 app.use(cors());
 app.use(express.json());
@@ -43,10 +43,10 @@ app.get('/api/mars-photos', async (req, res) => {
     const { rover = 'curiosity', sol = '1000', camera } = req.query;
     let url = `${NASA_BASE_URL}/mars-photos/api/v1/rovers/${rover}/photos?sol=${sol}&api_key=${NASA_API_KEY}`;
     if (camera && camera !== '') url += `&camera=${camera}`;
-    
+
     console.log(`Fetching Mars photos: ${url}`);
     const response = await axios.get(url, { timeout: 10000 });
-    
+
     if (response.data.photos && response.data.photos.length === 0) {
       // Try a different sol if no photos found
       const fallbackSol = rover === 'perseverance' ? '100' : '2000';
@@ -58,9 +58,9 @@ app.get('/api/mars-photos', async (req, res) => {
     }
   } catch (error) {
     console.error('Mars Photos API Error:', error.message);
-    res.status(500).json({ 
-      error: 'Failed to fetch Mars photos', 
-      details: error.response?.data || error.message 
+    res.status(500).json({
+      error: 'Failed to fetch Mars photos',
+      details: error.response?.data || error.message
     });
   }
 });
@@ -72,7 +72,7 @@ app.get('/api/neo', async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
     const startDate = start_date || today;
     const endDate = end_date || today;
-    
+
     const url = `${NASA_BASE_URL}/neo/rest/v1/feed?start_date=${startDate}&end_date=${endDate}&api_key=${NASA_API_KEY}`;
     console.log(`Fetching NEO: ${url}`);
     const response = await axios.get(url, { timeout: 15000 });
@@ -113,7 +113,7 @@ app.get('/api/donki', async (req, res) => {
     const { type = 'all' } = req.query;
     const endDate = new Date().toISOString().split('T')[0];
     const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
+
     let url;
     if (type === 'flr') {
       url = `${NASA_BASE_URL}/DONKI/FLR?startDate=${startDate}&endDate=${endDate}&api_key=${NASA_API_KEY}`;
@@ -130,7 +130,7 @@ app.get('/api/donki', async (req, res) => {
         cmes: cmeResponse.data
       });
     }
-    
+
     const response = await axios.get(url);
     res.json(response.data);
   } catch (error) {
@@ -156,15 +156,15 @@ app.get('/api/epic', async (req, res) => {
       }
     }
     url += `?api_key=${NASA_API_KEY}`;
-    
+
     console.log(`Fetching EPIC images: ${url}`);
     const response = await axios.get(url, { timeout: 15000 });
     res.json(response.data);
   } catch (error) {
     console.error('EPIC API Error:', error.message);
-    res.status(500).json({ 
-      error: 'Failed to fetch EPIC data', 
-      details: error.response?.data || error.message 
+    res.status(500).json({
+      error: 'Failed to fetch EPIC data',
+      details: error.response?.data || error.message
     });
   }
 });
@@ -175,9 +175,9 @@ app.get('/api/eonet', async (req, res) => {
     const { category, status = 'open', limit = 20 } = req.query;
     let url = `https://eonet.gsfc.nasa.gov/api/v3/events?status=${status}&limit=${limit}`;
     if (category) url += `&category=${category}`;
-    
+
     console.log(`Fetching EONET: ${url}`);
-    const response = await axios.get(url, { 
+    const response = await axios.get(url, {
       timeout: 15000,
       headers: {
         'User-Agent': 'AstroLink-NASA-Explorer/1.0'
@@ -229,7 +229,7 @@ app.get('/api/images', async (req, res) => {
   try {
     const { q = 'earth', media_type = 'image' } = req.query;
     const url = `https://images-api.nasa.gov/search?q=${encodeURIComponent(q)}&media_type=${media_type}`;
-    
+
     const response = await axios.get(url);
     res.json(response.data);
   } catch (error) {
@@ -241,10 +241,10 @@ app.get('/api/images', async (req, res) => {
 // POWER API - Climate and Solar Energy Data
 app.get('/api/power', async (req, res) => {
   try {
-    const { 
-      latitude = '33.69', 
-      longitude = '73.05', 
-      start = '20240101', 
+    const {
+      latitude = '33.69',
+      longitude = '73.05',
+      start = '20240101',
       end = '20240110',
       parameters = 'T2M,ALLSKY_SFC_SW_DWN'
     } = req.query;

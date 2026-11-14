@@ -144,21 +144,22 @@ const Dashboard = () => {
         >
           <Rocket className="h-20 w-20 text-blue-400 mx-auto" />
         </motion.div>
-        
+
         <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           AstroLink
         </h1>
-        
-        <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-          Explore the cosmos with real-time data from NASA's public APIs. 
+
+        <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+          Explore the cosmos with real-time data from NASA's public APIs.
           Discover space missions, track asteroids, monitor space weather, and more.
         </p>
-        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200/50">
-          <p className="text-sm text-gray-600">
-            Developed with ❤️ by <span className="text-blue-600 font-semibold">Bruce Lee</span>
+        <div className="mt-6 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/30">
+          <p className="text-sm text-gray-300">
+            Developed with <span className="emoji">❤️</span> by{' '}
+            <span className="text-brand-cyan font-semibold tracking-wide">Viper NEX</span>
           </p>
         </div>
-        
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -194,8 +195,8 @@ const Dashboard = () => {
               <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl mb-3 w-fit mx-auto">
                 <Icon className="h-8 w-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-gray-800 mb-1">{stat.value}</div>
-              <div className="text-sm text-gray-600">{stat.label}</div>
+              <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
+              <div className="text-sm text-gray-300">{stat.label}</div>
             </motion.div>
           )
         })}
@@ -208,10 +209,10 @@ const Dashboard = () => {
         transition={{ delay: 0.6 }}
         className="space-y-8"
       >
-        <h2 className="text-3xl font-bold text-gray-800 text-center">
+        <h2 className="text-3xl font-bold text-white text-center">
           Explore NASA's Universe
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon
@@ -229,16 +230,16 @@ const Dashboard = () => {
                     <div className={`inline-flex p-3 rounded-lg bg-gradient-to-r ${feature.color} mb-4`}>
                       <Icon className="h-6 w-6 text-white" />
                     </div>
-                    
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
+
+                    <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors">
                       {feature.title}
                     </h3>
-                    
-                    <p className="text-gray-600 text-sm leading-relaxed">
+
+                    <p className="text-gray-400 text-sm leading-relaxed">
                       {feature.description}
                     </p>
-                    
-                    <div className="mt-4 text-blue-600 text-sm font-medium group-hover:text-blue-700 transition-colors flex items-center">
+
+                    <div className="mt-4 text-blue-400 text-sm font-medium group-hover:text-blue-300 transition-colors flex items-center">
                       Explore <span className="ml-1">→</span>
                     </div>
                   </div>
@@ -254,13 +255,13 @@ const Dashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9 }}
-        className="card text-center bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200"
+        className="card text-center bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/30"
       >
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">
+        <h3 className="text-2xl font-bold text-white mb-4">
           Ready to Explore the Cosmos?
         </h3>
-        <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-          Start your journey through space with real NASA data. From daily astronomy pictures 
+        <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+          Start your journey through space with real NASA data. From daily astronomy pictures
           to Mars rover photos, discover the wonders of our universe.
         </p>
         <Link to="/apod" className="btn-primary">

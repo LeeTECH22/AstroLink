@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Zap from 'lucide-react/dist/esm/icons/zap'
 import Search from 'lucide-react/dist/esm/icons/search'
@@ -9,18 +9,22 @@ import { nasaApi } from '../services/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorMessage from '../components/ErrorMessage'
 
+// SBDB returns numeric fields as strings; render them safely and never show "NaN".
+const fmt = (value: unknown, digits: number, unit = ''): string => {
+  const parsed = parseFloat(String(value))
+  return Number.isFinite(parsed) ? `${parsed.toFixed(digits)}${unit}` : 'N/A'
+}
+
 const SmallBodies = () => {
   const [searchTerm, setSearchTerm] = useState('433') // Default to asteroid Eros
 
-  const { data, isLoading, error, refetch } = useQuery(
-    ['small-bodies', searchTerm],
-    () => nasaApi.getSmallBodyData(searchTerm),
-    {
-      select: (response) => response.data,
-      staleTime: 10 * 60 * 1000,
-      enabled: searchTerm.length > 0,
-    }
-  )
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['small-bodies', searchTerm],
+    queryFn: () => nasaApi.getSmallBodyData(searchTerm),
+    select: (response) => response.data,
+    staleTime: 10 * 60 * 1000,
+    enabled: searchTerm.length > 0
+  })
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +37,7 @@ const SmallBodies = () => {
 
   if (error) {
     return (
-      <ErrorMessage 
+      <ErrorMessage
         message="Failed to load small body data. Please try again."
         onRetry={() => refetch()}
       />
@@ -55,7 +59,7 @@ const SmallBodies = () => {
           <h1 className="text-4xl font-bold text-white">Small Body Database</h1>
         </div>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Explore NASA's JPL Small-Body Database for detailed information about 
+          Explore NASA's JPL Small-Body Database for detailed information about
           asteroids, comets, and other small solar system bodies.
         </p>
       </motion.div>
@@ -72,7 +76,7 @@ const SmallBodies = () => {
             <Search className="h-5 w-5 text-blue-400" />
             <h3 className="text-lg font-semibold text-white">Search Small Bodies</h3>
           </div>
-          
+
           <div className="flex space-x-4">
             <input
               type="text"
@@ -85,7 +89,7 @@ const SmallBodies = () => {
               Search
             </button>
           </div>
-          
+
           <div className="text-sm text-gray-400">
             <p><strong>Examples:</strong> 433 (Eros), 1 (Ceres), 2060 (Chiron), 1P (Halley)</p>
           </div>
@@ -105,7 +109,7 @@ const SmallBodies = () => {
             <h2 className="text-2xl font-bold text-white mb-4">
               {object.fullname || object.des || 'Unknown Object'}
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div>
                 <h4 className="text-lg font-semibold text-white mb-3">Identification</h4>
@@ -131,19 +135,19 @@ const SmallBodies = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Semi-major axis:</span>
-                      <span className="text-white">{object.orbit.a ? `${parseFloat(object.orbit.a).toFixed(3)} AU` : 'N/A'}</span>
+                      <span className="text-white">{fmt(object.orbit.a, 3, ' AU')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Eccentricity:</span>
-                      <span className="text-white">{object.orbit.e ? parseFloat(object.orbit.e).toFixed(4) : 'N/A'}</span>
+                      <span className="text-white">{fmt(object.orbit.e, 4)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Inclination:</span>
-                      <span className="text-white">{object.orbit.i ? `${parseFloat(object.orbit.i).toFixed(2)}°` : 'N/A'}</span>
+                      <span className="text-white">{fmt(object.orbit.i, 2, '°')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Period:</span>
-                      <span className="text-white">{object.orbit.per ? `${parseFloat(object.orbit.per).toFixed(2)} years` : 'N/A'}</span>
+                      <span className="text-white">{fmt(object.orbit.per, 2, ' years')}</span>
                     </div>
                   </div>
                 </div>
@@ -179,25 +183,25 @@ const SmallBodies = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Perihelion Distance:</span>
-                    <span className="text-white">{object.orbit.q ? `${parseFloat(object.orbit.q).toFixed(3)} AU` : 'N/A'}</span>
+                    <span className="text-white">{fmt(object.orbit.q, 3, ' AU')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Aphelion Distance:</span>
-                    <span className="text-white">{object.orbit.ad ? `${parseFloat(object.orbit.ad).toFixed(3)} AU` : 'N/A'}</span>
+                    <span className="text-white">{fmt(object.orbit.ad, 3, ' AU')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Longitude of Ascending Node:</span>
-                    <span className="text-white">{object.orbit.om ? `${parseFloat(object.orbit.om).toFixed(2)}°` : 'N/A'}</span>
+                    <span className="text-white">{fmt(object.orbit.om, 2, '°')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Argument of Perihelion:</span>
-                    <span className="text-white">{object.orbit.w ? `${parseFloat(object.orbit.w).toFixed(2)}°` : 'N/A'}</span>
+                    <span className="text-white">{fmt(object.orbit.w, 2, '°')}</span>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Mean Anomaly:</span>
-                    <span className="text-white">{object.orbit.ma ? `${parseFloat(object.orbit.ma).toFixed(2)}°` : 'N/A'}</span>
+                    <span className="text-white">{fmt(object.orbit.ma, 2, '°')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Epoch:</span>
@@ -237,10 +241,10 @@ const SmallBodies = () => {
                           {approach.cd || 'N/A'}
                         </td>
                         <td className="py-3 px-4 text-gray-300">
-                          {approach.dist ? parseFloat(approach.dist).toFixed(4) : 'N/A'}
+                          {fmt(approach.dist, 4)}
                         </td>
                         <td className="py-3 px-4 text-gray-300">
-                          {approach.v_rel ? parseFloat(approach.v_rel).toFixed(2) : 'N/A'}
+                          {fmt(approach.v_rel, 2)}
                         </td>
                         <td className="py-3 px-4 text-gray-300">
                           {approach.body || 'Earth'}
@@ -270,14 +274,14 @@ const SmallBodies = () => {
           <div>
             <h4 className="text-white font-medium mb-2">Asteroids</h4>
             <p>
-              Rocky objects that orbit the Sun, mostly found in the asteroid belt between 
+              Rocky objects that orbit the Sun, mostly found in the asteroid belt between
               Mars and Jupiter. They range from small rocks to objects hundreds of kilometers across.
             </p>
           </div>
           <div>
             <h4 className="text-white font-medium mb-2">Comets</h4>
             <p>
-              Icy objects from the outer solar system that develop tails when approaching the Sun. 
+              Icy objects from the outer solar system that develop tails when approaching the Sun.
               They provide insights into the early formation of our solar system.
             </p>
           </div>

@@ -33,6 +33,7 @@ export interface MarsRoverPhoto {
 
 export interface MarsRoverResponse {
   photos: MarsRoverPhoto[]
+  _meta?: Record<string, unknown>
 }
 
 export interface NearEarthObject {
@@ -117,9 +118,22 @@ export interface CoronalMassEjection {
   }>
 }
 
+export interface GeomagneticStorm {
+  gstID: string
+  startTime: string
+  allKpIndex?: Array<{
+    observedTime: string
+    kpIndex: number
+    source?: string
+  }>
+  link?: string
+}
+
 export interface SpaceWeatherResponse {
   solarFlares: SolarFlare[]
   cmes: CoronalMassEjection[]
+  geomagneticStorms?: GeomagneticStorm[]
+  _meta?: Record<string, unknown>
 }
 
 export interface EPICImage {
@@ -227,6 +241,14 @@ export interface NASAImageResponse {
 
 export interface PowerDataResponse {
   type: string
+  // POWER includes a descriptive header (title, fill value, returned range).
+  header?: {
+    title?: string
+    api?: string
+    fill_value?: number
+    start?: string
+    end?: string
+  }
   geometry: {
     type: string
     coordinates: [number, number]
@@ -238,6 +260,188 @@ export interface PowerDataResponse {
       }
     }
   }
+}
+
+// ---- Earth Trend Detective ----
+// Variables offered by the NASA POWER monthly point endpoint (community=RE).
+export type TrendVariableId = 'T2M' | 'PRECTOTCORR' | 'ALLSKY_SFC_SW_DWN'
+
+export interface TrendVariableMeta {
+  id: TrendVariableId
+  label: string
+  units: string
+  description: string
+}
+
+// A single valid observation in the series (missing months are excluded).
+export interface TrendObservation {
+  index: number // absolute month number (year * 12 + month - 1), keeps real spacing
+  label: string // e.g. "2015-01"
+  year: number
+  month: number
+  value: number
+}
+
+export interface ConfidenceInterval {
+  lower: number
+  upper: number
+  level: number
+}
+
+export interface LinearRegressionResult {
+  slope: number
+  intercept: number
+  rSquared: number
+  residualStandardError: number
+  standardError: number
+  tStatistic: number
+  degreesOfFreedom: number
+  pValue: number
+  confidenceInterval: ConfidenceInterval
+}
+
+export interface MannKendallResult {
+  s: number
+  variance: number
+  z: number
+  pValue: number
+  tau: number
+  trend: 'increasing' | 'decreasing' | 'no trend'
+}
+
+export interface SensSlopeResult {
+  slope: number
+  confidenceInterval: ConfidenceInterval | null
+}
+
+export interface TrendAnalysis {
+  variable: TrendVariableId
+  observations: TrendObservation[]
+  regression: LinearRegressionResult | null
+  mannKendall: MannKendallResult | null
+  sensSlope: SensSlopeResult | null
+  direction: 'increasing' | 'decreasing' | 'no trend'
+  significant: boolean
+  significanceLevel: number
+  totalMonths: number
+  missingCount: number
+  validCount: number
+}
+
+// ---- Earth Trend Detective: aggregation, quality, anomaly & forecast ----
+
+// One calendar year, aggregated from its valid months only.
+export interface AnnualPoint {
+  year: number
+  value: number // mean of the year's valid months
+  validMonths: number
+  missingMonths: number
+  complete: boolean
+}
+
+export interface AnnualSeries {
+  points: AnnualPoint[]
+  totalYears: number
+  completeYears: number
+}
+
+// Descriptive statistics for one calendar month (across all years).
+export interface SeasonalMonthStat {
+  month: number // 1-12
+  label: string // "Jan" ...
+  mean: number | null
+  median: number | null
+  min: number | null
+  max: number | null
+  stdDev: number | null
+  count: number
+}
+
+export interface SeasonalAnalysis {
+  months: SeasonalMonthStat[]
+  amplitude: number | null // max(monthly mean) - min(monthly mean)
+  peakMonth: number | null
+  troughMonth: number | null
+  validCount: number
+}
+
+export interface CompletenessStats {
+  totalMonths: number
+  validMonths: number
+  missingMonths: number
+  missingPercent: number
+  expectedYears: number
+  completeYears: number
+  yearsWithGaps: number[]
+}
+
+export interface OutlierResult {
+  label: string
+  year: number
+  month: number
+  value: number
+  score: number // modified z-score (robust) or z-score (fallback)
+  direction: 'high' | 'low'
+}
+
+export interface OutlierSummary {
+  outliers: OutlierResult[]
+  method: 'modified-z-score' | 'z-score'
+  threshold: number
+  center: number // median (robust) or mean (fallback)
+  spread: number // MAD * 1.4826 (robust) or std-dev (fallback)
+  checkedCount: number
+}
+
+export interface DecompositionResult {
+  period: number
+  method: string
+  trend: (number | null)[]
+  seasonal: number[] // length = period, index 0 = first period slot
+  residual: (number | null)[]
+}
+
+export interface ForecastPoint {
+  x: number
+  label: string
+  value: number
+  lower: number
+  upper: number // bounds of the prediction interval
+}
+
+export interface ForecastResult {
+  method: string
+  horizon: number
+  predictions: ForecastPoint[]
+  slope: number
+  intercept: number
+  residualStandardError: number
+  intervalLevel: number
+}
+
+export interface ForecastMetrics {
+  mae: number
+  rmse: number
+  mape: number | null
+  n: number
+}
+
+export interface AnomalyRecord {
+  label: string
+  year: number
+  month: number
+  value: number
+  baseline: number // climatological value for that calendar month
+  departure: number // value - baseline
+  zScore: number
+  severity: 'high' | 'low'
+}
+
+export interface AnomalyResult {
+  anomalies: AnomalyRecord[]
+  baselineMethod: string
+  threshold: number
+  baselineByMonth: (number | null)[]
 }
 
 export interface TechPortProject {
@@ -438,4 +642,136 @@ export interface APIError {
   message: string
   status?: number
   code?: string
+}
+
+// ---- Multi-source data fusion and AI agent ----
+
+export type ProviderKind = 'reanalysis' | 'observation' | 'event' | 'catalog' | 'imagery'
+
+export interface ProviderVariable {
+  id: string
+  label: string
+  units: string
+  category: string
+}
+
+export interface ProviderInfo {
+  id: string
+  label: string
+  kind: ProviderKind
+  dataset: string
+  temporalResolution: string
+  spatialResolution: string
+  notes: string
+  variables: ProviderVariable[]
+  requiresKey: boolean
+  configured: boolean
+}
+
+export interface ProviderCircuit {
+  state: 'closed' | 'open' | 'half-open'
+  consecutiveFailures: number
+  totalSuccesses: number
+  totalFailures: number
+  lastStatus: number | null
+  retryInMs: number
+}
+
+export interface ProviderHealth {
+  id: string
+  label: string
+  kind: ProviderKind
+  configured: boolean
+  circuit: ProviderCircuit
+  metrics: {
+    requests: number
+    successes: number
+    failures: number
+    cacheHits: number
+    lastLatencyMs: number | null
+    lastStatus: number | null
+    lastFetchAt: string | null
+    lastError: string | null
+  }
+}
+
+export interface ProviderCatalogResponse {
+  providers: ProviderInfo[]
+  health: ProviderHealth[]
+  cache: { entries: number; hits: number; misses: number; hitRate: number }
+}
+
+export interface ProviderDataEnvelope<T = any> {
+  provider: string
+  label: string
+  dataset: string
+  kind: ProviderKind
+  temporalResolution: string
+  spatialResolution: string
+  sourceUrl: string
+  fetchedAt: string
+  latencyMs: number
+  cached: boolean
+  notes: string
+  data: T
+}
+
+export interface AiStatus {
+  available: boolean
+  provider: string
+  model: string | null
+  mode: 'ai-assisted' | 'deterministic-only'
+  note: string
+}
+
+export interface AiExplainResponse {
+  available: boolean
+  mode: 'ai-assisted' | 'deterministic-only'
+  provider?: string
+  model?: string | null
+  answer: string | null
+  note?: string
+  error?: boolean
+  groundedIn?: string
+}
+
+// ---- NASA AI Research (restricted research assistant) ----
+
+export interface ResearchChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface AiResearchResponse {
+  available: boolean
+  provider: string
+  model: string | null
+  answer: string | null
+  note?: string
+  error?: boolean
+  detail?: string
+}
+
+// ---- NASA ADS (Astrophysics Data System) ----
+
+export interface AdsPaper {
+  bibcode: string
+  title: string
+  authors: string[]
+  year?: string
+  journal?: string
+  abstract: string | null
+  citations: number | null
+  doi: string | null
+  doctype: string | null
+  refereed: boolean
+}
+
+export interface AdsSearchResponse {
+  source: string
+  query: string
+  page: number
+  rows: number
+  numFound: number
+  papers: AdsPaper[]
 }
